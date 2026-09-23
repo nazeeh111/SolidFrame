@@ -1,0 +1,433 @@
+.root {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    z-index: 9999;
+    background: var(--background-color);
+    color: var(--foreground-color);
+    overflow: auto;
+    touch-action: pan-y;
+}
+.left {
+    flex: 0 0 248px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 30px 22px 22px;
+    border-right: 1px solid var(--border-color);
+    background: var(--panel-background-color);
+}
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 42px;
+}
+.logoMark {
+    width: 34px;
+    height: 34px;
+}
+.wordmark {
+    display: block;
+    font-size: 25px;
+    font-weight: 750;
+    letter-spacing: -1px;
+}
+.version {
+    display: block;
+    margin-top: 7px;
+    font-size: 8px;
+    letter-spacing: 1.4px;
+    color: var(--foreground-secondary-color);
+}
+.navigationLabel,
+.eyebrow {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    font-weight: 650;
+    color: var(--primary-color);
+}
+.navigationLabel {
+    margin-bottom: 9px;
+    color: var(--foreground-secondary-color);
+}
+.button,
+.back {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-height: 43px;
+    padding: 12px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 550;
+    cursor: pointer;
+    background: transparent;
+    text-align: left;
+    transition: background 120ms;
+}
+.button svg,
+.back svg {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+}
+.button:hover,
+.back:hover {
+    background: var(--panel-hover-background-color);
+    border-color: var(--border-hover-color);
+}
+.button:focus-visible,
+.back:focus-visible,
+a:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 3px;
+}
+.primary {
+    background: var(--button-primary-background);
+    color: #fff;
+    border-color: transparent;
+}
+.primary span {
+    color: inherit;
+}
+.primary:hover {
+    background: var(--button-primary-hover);
+    border-color: transparent;
+}
+.back {
+    margin-top: 10px;
+    border: 0;
+    color: var(--primary-color);
+}
+.sidebarNote {
+    margin-top: auto;
+    padding: 36px 0 22px;
+    font-size: 11px;
+    line-height: 1.7;
+}
+.sidebarNote span {
+    font-size: 9px;
+    letter-spacing: 1px;
+    font-weight: 650;
+}
+.sidebarNote div {
+    margin-top: 10px;
+    color: var(--foreground-secondary-color);
+}
+.settingsPanel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 19px 0;
+    border-top: 1px solid var(--border-color);
+}
+.settingItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    font-size: 11px;
+}
+.settingItem span {
+    color: var(--foreground-secondary-color);
+}
+.settingItem select {
+    max-width: 124px;
+    padding: 5px 7px;
+    font-size: 11px;
+    border-radius: 3px;
+}
+.links {
+    display: flex;
+    gap: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border-color);
+    font-size: 10px;
+}
+.links a {
+    color: var(--foreground-secondary-color);
+    text-decoration: none;
+}
+.right {
+    flex: 1;
+    min-width: 0;
+    overflow: auto;
+}
+.page {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 32px 48px 22px;
+}
+.pageTop,
+.specimenCaption,
+.footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+}
+.pageTop {
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border-color);
+    font:
+        9px / 1.5 ui-monospace,
+        monospace;
+    letter-spacing: 1.2px;
+}
+.pageTop span,
+.footer span {
+    color: var(--foreground-secondary-color);
+}
+.hero {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    align-items: center;
+    gap: 20px;
+    min-height: 340px;
+    padding: 25px 0 24px;
+}
+.welcome {
+    margin: 20px 0 16px;
+    white-space: pre-line;
+    font-size: clamp(30px, 3.2vw, 48px);
+    font-weight: 650;
+    line-height: 1.13;
+    letter-spacing: -1.9px;
+}
+.subtitle {
+    max-width: 450px;
+    color: var(--foreground-secondary-color);
+    font-size: 13px;
+    line-height: 1.85;
+}
+.heroActions {
+    margin-top: 25px;
+    display: flex;
+}
+.specimen {
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+}
+.specimenImage {
+    width: 100%;
+    max-height: 290px;
+    object-fit: contain;
+}
+.specimenCaption {
+    margin: 0 20px;
+    font:
+        8px / 1.5 ui-monospace,
+        monospace;
+    letter-spacing: 1px;
+}
+.specimenCaption span {
+    color: var(--foreground-secondary-color);
+}
+.featureStrip {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 17px 0;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    font:
+        9px / 1.5 ui-monospace,
+        monospace;
+    letter-spacing: 1px;
+}
+.featureStrip span {
+    color: var(--foreground-secondary-color);
+}
+.contentRow {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 36px;
+    margin-top: 30px;
+}
+.sectionHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+.sectionTitle {
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+}
+.count {
+    color: var(--foreground-secondary-color);
+    font:
+        11px ui-monospace,
+        monospace;
+}
+.empty {
+    border: 1px dashed var(--border-color);
+    border-radius: 5px;
+    padding: 38px 25px;
+    line-height: 1.8;
+    font-size: 12px;
+    color: var(--foreground-secondary-color);
+}
+.sample {
+    background: var(--panel-background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 24px;
+}
+.sampleTitle {
+    font-size: 21px;
+    font-weight: 600;
+    margin: 15px 0 10px;
+    letter-spacing: -0.5px;
+}
+.sampleDescription {
+    color: var(--foreground-secondary-color);
+    line-height: 1.75;
+    font-size: 12px;
+    margin-bottom: 20px;
+}
+.sample .button {
+    width: 100%;
+}
+.sampleFoot {
+    font:
+        9px / 1.5 ui-monospace,
+        monospace;
+    color: var(--foreground-secondary-color);
+    margin-top: 14px;
+}
+.footer {
+    margin-top: 32px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border-color);
+    font-size: 10px;
+    line-height: 1.5;
+}
+.documents {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+    gap: 12px;
+}
+.document {
+    position: relative;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    overflow: hidden;
+    cursor: pointer;
+    background: var(--panel-background-color);
+}
+.document:hover {
+    border-color: var(--primary-color);
+}
+.img {
+    display: block;
+    width: 100%;
+    height: 110px;
+    object-fit: cover;
+}
+.description {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.title {
+    font-size: 12px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.date {
+    font-size: 10px;
+    color: var(--foreground-secondary-color);
+}
+.delete {
+    position: absolute;
+    width: 13px;
+    height: 13px;
+    top: 7px;
+    right: 7px;
+    padding: 5px;
+    background: var(--panel-background-color);
+    border-radius: 3px;
+}
+@media (max-width: 1080px) {
+    .page {
+        padding: 25px 28px;
+    }
+    .left {
+        flex-basis: 220px;
+        padding: 25px 18px;
+    }
+    .welcome {
+        font-size: 33px;
+    }
+    .contentRow {
+        gap: 22px;
+    }
+}
+@media (max-width: 800px) {
+    .hero {
+        grid-template-columns: 1fr;
+    }
+    .specimen {
+        display: none;
+    }
+    .contentRow {
+        grid-template-columns: 1fr;
+    }
+    .pageTop span:last-child {
+        display: none;
+    }
+    .footer {
+        flex-direction: column;
+        gap: 8px;
+    }
+}
+@media (max-width: 580px) {
+    .root {
+        flex-direction: column;
+    }
+    .left {
+        flex-basis: auto;
+        flex-shrink: 0;
+        padding: 20px;
+        border-right: 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .logo {
+        margin-bottom: 20px;
+    }
+    .sidebarNote {
+        margin-top: 8px;
+        padding: 12px 0;
+    }
+    .settingsPanel {
+        padding: 14px 0;
+    }
+    .right {
+        overflow: visible;
+        flex: 1 0 auto;
+    }
+    .page {
+        padding: 22px;
+    }
+    .hero {
+        min-height: 0;
+        padding: 32px 0;
+    }
+    .welcome {
+        font-size: 35px;
+    }
+    .featureStrip {
+        font-size: 8px;
+    }
+}

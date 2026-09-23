@@ -1,0 +1,89 @@
+.root {
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    box-shadow: 0px 5px 10px var(--foreground-muted-color);
+    border-radius: 16px;
+    overflow: hidden;
+    z-index: 1000;
+    min-width: 0;
+}
+
+.header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 12px;
+    cursor: move;
+    user-select: none;
+    touch-action: none;
+    flex-shrink: 0;
+}
+
+.title {
+    font-size: 0.92em;
+    font-weight: 600;
+    color: var(--foreground-color);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 2px;
+    margin-left: auto;
+    flex-shrink: 0;
+
+    &:empty {
+        display: none;
+    }
+}
+
+.closeButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 6px;
+    flex-shrink: 0;
+    padding: 4px;
+    color: var(--foreground-color);
+
+    svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    &:hover {
+        background-color: var(--hover-background-color);
+        color: var(--foreground-color);
+    }
+}
+
+.content {
+    flex: 1 1 auto;
+    overflow: auto;
+    min-height: 0;
+    margin: 0px 6px 6px 6px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    background-color: var(--panel-background-color);
+    opacity: 0.9;
+}
+
+.resizeHandle {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 16px;
+    height: 16px;
+    cursor: se-resize;
+    touch-action: none;
+}

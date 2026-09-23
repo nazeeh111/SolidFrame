@@ -1,0 +1,196 @@
+// Part of the Chili3d Project, under the AGPL-3.0 License.
+// See LICENSE file in the project root for full license information.
+
+import { type IEdge, type IFace, XYZ, type XYZLike } from "@chili3d/core";
+import { captureEdgeRef, refScoreRefs } from "./edgeRef";
+import { captureRegionFingerprint } from "./profileRef";
+import { directionsParallel, distance, MATCH_TOLERANCE, plainVec } from "./refGeometry";
+
+/**
+ * Completing a kernel history map by geometric identity.
+ *
+ * The tracked-id scheme (see `trackedId.ts`) rests on the kernel telling us which
+ * output sub-shape derives from which input. It is a sparse report: a rebuild leaves
+ * most sub-shapes bit-identical, and the kernel skips exactly those. Left alone, such
+ * a sub-shape would look brand new and take a feature-scoped id, silently diverging
+ * from the stable id a downstream ref stored.
+ *
+ * So an unmapped output is matched against the unclaimed inputs by geometric
+ * fingerprint: identical geometry claims its index back, a fingerprint that is not a
+ * clear winner claims nothing. The per-kind specializations below supply the
+ * fingerprint and the score; `completeHistory` owns the claiming rules.
+ *
+ * The aggregation over both kinds is `completeTrackedHistory` in `feature.ts`, which
+ * sits above these and adds the enumerated output sub-shapes its callers reuse.
+ */
+
+/**
+ * Fills the `-1` entries of a kernel history map by exact geometric identity.
+ *
+ * - **The rule.** An unmapped output inherits the input index of a fingerprint-identical input:
+ *   score within MATCH_TOLERANCE, the next rival at least MATCH_TOLERANCE farther, one claim
+ *   per input. Inputs already claimed by the map are not stolen.
+ * - **Why it is needed.** Parametric rebuilds leave most sub-shapes unchanged, and that is
+ *   exactly the part sparse kernel histories fail to report.
+ * - **Best-effort.** A sub-shape whose kernel queries fail (a degenerate edge or face) simply
+ *   never claims or gets claimed.
+ * - **Cost.** Fingerprints are captured once per candidate — unclaimed inputs and unmapped
+ *   outputs only — and a fully mapped history returns without capturing at all. Scoring a live
+ *   sub-shape per candidate pair would pay several kernel queries each, and the same output is
+ *   scored against every unclaimed input.
+ */
+export function completeHistory<TShape, TRef>(
+    inputs: readonly TShape[],
+    outputs: readonly TShape[],
+    map: readonly number[],
+    capture: (shape: TShape) => TRef,
+    score: (a: TRef, b: TRef) => number,
+): number[] {
+    const completed = [...map];
+    // Nothing to complete: skip every fingerprint capture.
+    if (!completed.some((index) => index < 0)) return completed;
+
+    const claimed = new Set(completed.filter((index) => index >= 0));
+    const inputRefs = captureUnclaimed(inputs, claimed, capture);
+    for (const [outputIndex, output] of outputs.entries()) {
+        if (completed[outputIndex] === undefined || completed[outputIndex] >= 0) continue;
+        // A degenerate output claims nothing — its entry stays unmapped.
+        const outputRef = tryCapture(output, capture);
+        if (outputRef === undefined) continue;
+
+        const match = nearestUnclaimed(inputRefs, claimed, outputRef, score);
+        // The winner has to be within tolerance AND clear of its runner-up.
+        if (match.index < 0 || match.best > MATCH_TOLERANCE || match.second - match.best < MATCH_TOLERANCE) {
+            continue;
+        }
+        completed[outputIndex] = match.index;
+        claimed.add(match.index);
+    }
+    return completed;
+}
+
+/**
+ * The unclaimed inputs with their fingerprints. Claimed inputs are skipped here rather than
+ * at scoring time — their fingerprint would only be discarded.
+ */
+function captureUnclaimed<TShape, TRef>(
+    inputs: readonly TShape[],
+    claimed: ReadonlySet<number>,
+    capture: (shape: TShape) => TRef,
+): { index: number; ref: TRef }[] {
+    const refs: { index: number; ref: TRef }[] = [];
+    for (const [index, input] of inputs.entries()) {
+        if (claimed.has(index)) continue;
+        const ref = tryCapture(input, capture);
+        // A degenerate input — it never claims an output.
+        if (ref !== undefined) refs.push({ index, ref });
+    }
+    return refs;
+}
+
+/**
+ * The unclaimed input closest to `outputRef`, if any, with the runner-up's score — the gap
+ * between the two is what tells a clear winner from a tie.
+ */
+function nearestUnclaimed<TRef>(
+    inputRefs: readonly { index: number; ref: TRef }[],
+    claimed: ReadonlySet<number>,
+    outputRef: TRef,
+    score: (a: TRef, b: TRef) => number,
+): { index: number; best: number; second: number } {
+    let index = -1;
+    let best = Number.POSITIVE_INFINITY;
+    let second = Number.POSITIVE_INFINITY;
+    for (const candidate of inputRefs) {
+        if (claimed.has(candidate.index)) continue;
+        const candidateScore = score(candidate.ref, outputRef);
+        if (candidateScore < best) {
+            second = best;
+            best = candidateScore;
+            index = candidate.index;
+        } else if (candidateScore < second) {
+            second = candidateScore;
+        }
+    }
+    return { index, best, second };
+}
+
+/** The fingerprint of one candidate sub-shape; undefined when a kernel query on it fails. */
+function tryCapture<TShape, TRef>(shape: TShape, capture: (shape: TShape) => TRef): TRef | undefined {
+    try {
+        return capture(shape);
+    } catch {
+        return undefined;
+    }
+}
+
+/**
+ * Edge specialization of `completeHistory` (see it for the claiming rules): the
+ * fingerprint is the `EdgeRef`, the score the fingerprint distance. Recovers the
+ * unchanged edges sparse kernel histories (e.g. revolve edges) fail to report.
+ */
+export function completeEdgeHistory(
+    inputs: readonly IEdge[],
+    outputs: readonly IEdge[],
+    map: readonly number[],
+): number[] {
+    return completeHistory(inputs, outputs, map, captureEdgeRef, refScoreRefs);
+}
+
+/**
+ * Geometric identity of a face for history completion: region identity (bbox
+ * center + area, the ProfileRef recipe) plus the outward normal for planar faces.
+ * A face the kernel history missed between two builds is bit-identical, so the
+ * fingerprint only has to discriminate it from its REPLACEMENTS within one
+ * operation — not to recognize a face across edits (that is what tracked ids and
+ * PlaneFaceRef/ProfileRef do downstream).
+ */
+export interface FaceFingerprint {
+    readonly center: XYZLike;
+    readonly area: number;
+    /** Outward normal for planar faces only; either orientation describes the same plane. */
+    readonly normal?: XYZLike;
+}
+
+/** Captures the fingerprint once per face — scoring a live face per pair would pay kernel queries each. */
+export function captureFaceFingerprint(face: IFace): FaceFingerprint {
+    const planar = face.surface().isPlanar();
+    return {
+        ...captureRegionFingerprint(face),
+        normal: planar ? plainVec(face.normal(0, 0)[1]) : undefined,
+    };
+}
+
+/**
+ * Region similarity: center drift + area drift normalized by the face's own length
+ * scale (ProfileRef's `regionScore` formula). A planar face never matches a
+ * non-planar one, and two planar faces must share the plane's orientation — the
+ * offset is already covered by the center term.
+ */
+function faceScoreFingerprints(a: FaceFingerprint, b: FaceFingerprint): number {
+    if ((a.normal === undefined) !== (b.normal === undefined)) return Infinity;
+    if (
+        a.normal !== undefined &&
+        b.normal !== undefined &&
+        !directionsParallel(new XYZ(a.normal), new XYZ(b.normal))
+    ) {
+        return Infinity;
+    }
+    const length = Math.sqrt(Math.max(a.area, b.area));
+    return distance(a.center, b.center) + Math.abs(a.area - b.area) / Math.max(length, 1e-9);
+}
+
+/**
+ * Face specialization of `completeHistory` (see it for the claiming rules): an
+ * unmapped output face inherits the input index of a fingerprint-identical input
+ * face. Recovers the unchanged faces sparse kernel face histories (prism tops,
+ * revolve caps and beyond) fail to report — the still-unmapped remainder keeps
+ * its hand-seeded or feature-scoped id.
+ */
+export function completeFaceHistory(
+    inputs: readonly IFace[],
+    outputs: readonly IFace[],
+    map: readonly number[],
+): number[] {
+    return completeHistory(inputs, outputs, map, captureFaceFingerprint, faceScoreFingerprints);
+}

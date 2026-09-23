@@ -1,0 +1,127 @@
+// Part of the Chili3d Project, under the AGPL-3.0 License.
+// See LICENSE file in the project root for full license information.
+
+import type { IDocument } from "@chili3d/core";
+import { Result, Serializer, XYZ } from "@chili3d/core";
+import { createMockDocument } from "@chili3d/core/test-utils";
+import { beforeEach, describe, expect, rs, test } from "@rstest/core";
+import { ConeNode } from "../../src/bodys/cone";
+import { createMockShape, setupShapeFactoryMock, setupSimpleShapeFactoryMock } from "./_utils";
+
+describe("ConeNode", () => {
+    let doc: IDocument;
+    const normal = XYZ.unitZ;
+    const center = XYZ.zero;
+
+    beforeEach(() => {
+        doc = createMockDocument();
+    });
+
+    describe("constructor", () => {
+        test("should initialize all properties", () => {
+            const node = new ConeNode({ document: doc, normal, center, radius: 10, dz: 25 });
+            expect(node.normal).toBe(normal);
+            expect(node.center).toBe(center);
+            expect(node.radius).toBe(10);
+            expect(node.dz).toBe(25);
+        });
+
+        test("should set name from display()", () => {
+            const node = new ConeNode({ document: doc, normal, center, radius: 1, dz: 1 });
+            expect(node.name).toBe("body.cone1");
+        });
+    });
+
+    describe("display", () => {
+        test("should return body.cone", () => {
+            const node = new ConeNode({ document: doc, normal, center, radius: 1, dz: 1 });
+            expect(node.display()).toBe("body.cone");
+        });
+    });
+
+    describe("getters", () => {
+        test("should return correct values", () => {
+            const node = new ConeNode({ document: doc, normal, center, radius: 8, dz: 16 });
+            expect(node.radius).toBe(8);
+            expect(node.dz).toBe(16);
+            expect(node.center).toBe(center);
+            expect(node.normal).toBe(normal);
+        });
+    });
+
+    describe("setters", () => {
+        test("should update center", () => {
+            setupSimpleShapeFactoryMock("cone");
+            const node = new ConeNode({ document: doc, normal, center, radius: 5, dz: 10 });
+            const nc = new XYZ({ x: 7, y: 7, z: 7 });
+            node.center = nc;
+            expect(node.center).toBe(nc);
+        });
+
+        test("should update radius", () => {
+            setupSimpleShapeFactoryMock("cone");
+            const node = new ConeNode({ document: doc, normal, center, radius: 5, dz: 10 });
+            node.radius = 30;
+            expect(node.radius).toBe(30);
+        });
+
+        test("should update dz", () => {
+            setupSimpleShapeFactoryMock("cone");
+            const node = new ConeNode({ document: doc, normal, center, radius: 5, dz: 10 });
+            node.dz = 50;
+            expect(node.dz).toBe(50);
+        });
+    });
+
+    describe("onPropertyChanged", () => {
+        test("should emit on radius change", () => {
+            setupSimpleShapeFactoryMock("cone");
+            const node = new ConeNode({ document: doc, normal, center, radius: 5, dz: 10 });
+            const handler = rs.fn((_property: string) => {});
+            node.onPropertyChanged(handler);
+            node.radius = 20;
+            expect(handler.mock.calls.map((c) => c[0])).toContain("radius");
+        });
+
+        test("should emit on dz change", () => {
+            setupSimpleShapeFactoryMock("cone");
+            const node = new ConeNode({ document: doc, normal, center, radius: 5, dz: 10 });
+            const handler = rs.fn((_property: string) => {});
+            node.onPropertyChanged(handler);
+            node.dz = 33;
+            expect(handler.mock.calls.map((c) => c[0])).toContain("dz");
+        });
+    });
+
+    describe("serialize", () => {
+        test("should serialize all properties", () => {
+            const node = new ConeNode({ document: doc, normal, center, radius: 6, dz: 12 });
+            doc.history.disabled = true;
+            const s = Serializer.serializeObject(node);
+            expect(s["radius"]).toBe(6);
+            expect(s["dz"]).toBe(12);
+            expect(s["normal"]).toBeDefined();
+            expect(s["center"]).toBeDefined();
+        });
+    });
+
+    describe("generateShape", () => {
+        test("should call shapeFactory.cone with correct params (radius2=0)", () => {
+            const cone = rs.fn(() => Result.ok(createMockShape()));
+            setupShapeFactoryMock({ cone });
+            const node = new ConeNode({ document: doc, normal, center, radius: 5, dz: 12 });
+            node.generateShape();
+            // ConeNode hardcodes 0 as radius2
+            expect(cone).toHaveBeenCalledWith(normal, center, 5, 0, 12);
+        });
+
+        test("should return Result.err when shapeFactory.cone fails", () => {
+            setupShapeFactoryMock({
+                cone: () => Result.err("cone creation failed"),
+            });
+            const node = new ConeNode({ document: doc, normal, center, radius: 5, dz: 12 });
+            const result = node.generateShape();
+            expect(result.isOk).toBe(false);
+        });
+    });
+});

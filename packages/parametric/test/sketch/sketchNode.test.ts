@@ -1,0 +1,466 @@
+// Part of the Chili3d Project, under the AGPL-3.0 License.
+// See LICENSE file in the project root for full license information.
+
+import {
+    BoundingBox,
+    type IDocument,
+    Matrix4,
+    Plane,
+    Result,
+    Serializer,
+    type ShapeType,
+    ShapeTypes,
+    Transaction,
+    XYZ,
+} from "@chili3d/core";
+import {
+    createMockApplication,
+    createMockDocument,
+    nearestOnSegment,
+    TestDocument,
+} from "@chili3d/core/test-utils";
+import { rs } from "@rstest/core";
+import type { ExternalRefData, SketchData } from "../../src/sketch/sketchModel";
+import { danglingProfileRefs, SketchNode } from "../../src/sketch/sketchNode";
+
+function fakeShape(name: string) {
+    return { name, isEqual: () => false } as any;
+}
+
+/**
+ * Mock shapeFactory methods on globalThis, restoring the previous state after each test.
+ */
+function mockShapeFactory(methods: Record<string, (...args: any[]) => any>) {
+    const previous = Object.getOwnPropertyDescriptor(globalThis, "shapeFactory");
+    Object.defineProperty(globalThis, "shapeFactory", {
+        value: methods,
+        writable: true,
+        configurable: true,
+    });
+    return () => {
+        if (previous) {
+            Object.defineProperty(globalThis, "shapeFactory", previous);
+        } else {
+            delete (globalThis as any).shapeFactory;
+        }
+    };
+}
+
+const DATA: SketchData = {
+    entities: [
+        { id: 1, type: "line", params: [0, 0, 3, 4] },
+        { id: 2, type: "circle", params: [1, 2, 7] },
+    ],
+    constraints: [],
+};
+
+describe("SketchNode", () => {
+    let doc: IDocument;
+    let plane: Plane;
+    let restoreFactory: (() => void) | undefined;
+
+    beforeEach(() => {
+        doc = createMockDocument();
+        plane = Plane.XY.translateTo(new XYZ({ x: 0, y: 0, z: 5 }));
+    });
+
+    afterEach(() => {
+        restoreFactory?.();
+        restoreFactory = undefined;
+    });
+
+    function setupFactory() {
+        const lineShape = fakeShape("line");
+        const line = rs.fn((_start: XYZ, _end: XYZ) => Result.ok(lineShape));
+        const circle = rs.fn((_normal: XYZ, _center: XYZ, _radius: number) => Result.ok(fakeShape("circle")));
+        const compoundShape = fakeShape("compound");
+        const combine = rs.fn((_edges: any[]) => Result.ok(compoundShape));
+        restoreFactory = mockShapeFactory({ line, circle, combine });
+        return { line, circle, combine, lineShape, compoundShape };
+    }
+
+    test("display returns body.sketch", () => {
+        const node = new SketchNode({ document: doc, plane, data: DATA });
+        expect(node.display()).toBe("body.sketch");
+    });
+
+    test("generateShape builds edges with plane-transformed coordinates and combines them", () => {
+        const { line, circle, combine, compoundShape } = setupFactory();
+        const node = new SketchNode({ document: doc, plane, data: DATA });
+
+        const result = node.generateShape();
+
+        expect(result.isOk).toBe(true);
+        expect(result.unchecked()).toBe(compoundShape);
+
+        expect(line).toHaveBeenCalledTimes(1);
+        const [start, end] = line.mock.calls[0] as unknown as XYZ[];
+        expect([start.x, start.y, start.z]).toEqual([0, 0, 5]);
+        expect([end.x, end.y, end.z]).toEqual([3, 4, 5]);
+
+        expect(circle).toHaveBeenCalledTimes(1);
+        const [normal, center, radius] = circle.mock.calls[0] as unknown as [XYZ, XYZ, number];
+        expect([normal.x, normal.y, normal.z]).toEqual([0, 0, 1]);
+        expect([center.x, center.y, center.z]).toEqual([1, 2, 5]);
+        expect(radius).toBe(7);
+
+        expect(combine).toHaveBeenCalledTimes(1);
+        const edges = (combine.mock.calls[0] as unknown as [any[]])[0];
+        expect(edges.length).toBe(2);
+    });
+
+    test("generateShape returns the edge directly for a single entity", () => {
+        const { line, combine, lineShape } = setupFactory();
+        const node = new SketchNode({
+            document: doc,
+            plane,
+            data: { entities: [{ id: 1, type: "line", params: [0, 0, 1, 1] }], constraints: [] },
+        });
+
+        const result = node.generateShape();
+
+        expect(result.isOk).toBe(true);
+        expect(result.unchecked()).toBe(lineShape);
+        expect(line).toHaveBeenCalledTimes(1);
+        expect(combine).not.toHaveBeenCalled();
+    });
+
+    test("a truncated profile-role snapshot is zero-padded and persisted on evaluation", () => {
+        const { line } = setupFactory();
+        const node = new SketchNode({
+            document: doc,
+            plane,
+            data: {
+                entities: [],
+                constraints: [],
+                externalRefs: [
+                    {
+                        entityId: -100,
+                        nodeId: "missing-source",
+                        edge: { kind: "line", start: { x: 5, y: 6, z: 0 }, end: { x: 7, y: 8, z: 0 } },
+                        role: "profile",
+                        // hand-edited/legacy data: a line snapshot needs 4 params
+                        snapshot: [5, 6, 7],
+                        type: "line",
+                    },
+                ],
+            },
+        });
+
+        const result = node.generateShape();
+
+        expect(result.isOk).toBe(true);
+        // the padded end point reaches the factory — no NaN coordinates
+        const [start, end] = line.mock.calls[0] as unknown as XYZ[];
+        expect([start.x, start.y, start.z]).toEqual([5, 6, 5]);
+        expect([end.x, end.y, end.z]).toEqual([7, 0, 5]);
+        // …and the persisted data self-heals (the missing source also dangles it)
+        const ref = node.data.externalRefs![0];
+        expect(ref.snapshot).toEqual([5, 6, 7, 0]);
+        expect(ref.dangling).toBe(true);
+    });
+
+    test("generateShape builds an arc edge with the counter-clockwise sweep angle", () => {
+        const arcShape = fakeShape("arc");
+        const arc = rs.fn((_normal: XYZ, _center: XYZ, _start: XYZ, _angle: number) => Result.ok(arcShape));
+        restoreFactory = mockShapeFactory({ arc, combine: () => Result.ok(fakeShape("compound")) });
+        const node = new SketchNode({
+            document: doc,
+            plane,
+            data: { entities: [{ id: 1, type: "arc", params: [0, 0, 10, 0, 0, 10] }], constraints: [] },
+        });
+
+        const result = node.generateShape();
+
+        expect(result.isOk).toBe(true);
+        expect(result.unchecked()).toBe(arcShape);
+        expect(arc).toHaveBeenCalledTimes(1);
+        const [normal, center, start, angle] = arc.mock.calls[0] as unknown as [XYZ, XYZ, XYZ, number];
+        expect([normal.x, normal.y, normal.z]).toEqual([0, 0, 1]);
+        expect([center.x, center.y, center.z]).toEqual([0, 0, 5]);
+        expect([start.x, start.y, start.z]).toEqual([10, 0, 5]);
+        expect(angle).toBeCloseTo(90, 6);
+    });
+
+    test("generateShape sweeps the long way when the end is clockwise of the start", () => {
+        const arc = rs.fn((_normal: XYZ, _center: XYZ, _start: XYZ, _angle: number) =>
+            Result.ok(fakeShape("arc")),
+        );
+        restoreFactory = mockShapeFactory({ arc, combine: () => Result.ok(fakeShape("compound")) });
+        const node = new SketchNode({
+            document: doc,
+            plane,
+            data: { entities: [{ id: 1, type: "arc", params: [0, 0, 10, 0, 0, -10] }], constraints: [] },
+        });
+
+        const result = node.generateShape();
+
+        expect(result.isOk).toBe(true);
+        expect((arc.mock.calls[0] as unknown as [XYZ, XYZ, XYZ, number])[3]).toBeCloseTo(270, 6);
+    });
+
+    test("generateShape rejects an arc with a degenerate radius or sweep", () => {
+        const arc = rs.fn(() => Result.ok(fakeShape("arc")));
+        restoreFactory = mockShapeFactory({ arc, combine: () => Result.ok(fakeShape("compound")) });
+        const tinyRadius = new SketchNode({
+            document: doc,
+            plane,
+            data: { entities: [{ id: 1, type: "arc", params: [0, 0, 0, 0, 1, 1] }], constraints: [] },
+        });
+        const zeroSweep = new SketchNode({
+            document: doc,
+            plane,
+            data: { entities: [{ id: 1, type: "arc", params: [0, 0, 10, 0, 20, 0] }], constraints: [] },
+        });
+
+        expect(tinyRadius.generateShape().error).toBe("Arc radius is too small");
+        expect(zeroSweep.generateShape().error).toBe("Arc is degenerate (zero sweep)");
+        expect(arc).not.toHaveBeenCalled();
+    });
+
+    test("generateShape builds a near-full-circle arc (small negative raw sweep)", () => {
+        const arc = rs.fn((_normal: XYZ, _center: XYZ, _start: XYZ, _angle: number) =>
+            Result.ok(fakeShape("arc")),
+        );
+        restoreFactory = mockShapeFactory({ arc, combine: () => Result.ok(fakeShape("compound")) });
+        // end 0.0005 rad clockwise of the start: a legitimate ~359.97° arc that the
+        // old |sweep − 2π| check refused as "Arc sweep angle is too small"
+        const a = -0.0005;
+        const node = new SketchNode({
+            document: doc,
+            plane,
+            data: {
+                entities: [{ id: 1, type: "arc", params: [0, 0, 10, 0, 10 * Math.cos(a), 10 * Math.sin(a)] }],
+                constraints: [],
+            },
+        });
+
+        const result = node.generateShape();
+
+        expect(result.isOk).toBe(true);
+        expect(arc).toHaveBeenCalledTimes(1);
+        const angle = (arc.mock.calls[0] as unknown as [XYZ, XYZ, XYZ, number])[3];
+        expect(angle).toBeCloseTo(360 + (a * 180) / Math.PI, 6);
+    });
+
+    test("generateShape rejects an arc whose end is within angular tolerance CCW of the start", () => {
+        const arc = rs.fn(() => Result.ok(fakeShape("arc")));
+        restoreFactory = mockShapeFactory({ arc, combine: () => Result.ok(fakeShape("compound")) });
+        // raw sweep in (0, Precision.Angle]: indistinguishable from a zero-span arc
+        const a = 0.0005;
+        const node = new SketchNode({
+            document: doc,
+            plane,
+            data: {
+                entities: [{ id: 1, type: "arc", params: [0, 0, 10, 0, 10 * Math.cos(a), 10 * Math.sin(a)] }],
+                constraints: [],
+            },
+        });
+
+        expect(node.generateShape().error).toBe("Arc is degenerate (zero sweep)");
+        expect(arc).not.toHaveBeenCalled();
+    });
+
+    test("generateShape returns an empty compound when the sketch has no entities", () => {
+        const { combine, compoundShape } = setupFactory();
+        const node = new SketchNode({ document: doc, plane });
+        const result = node.generateShape();
+        expect(result.isOk).toBe(true);
+        expect(result.unchecked()).toBe(compoundShape);
+        expect(combine).toHaveBeenCalledTimes(1);
+        expect((combine.mock.calls[0] as unknown as [any[]])[0]).toEqual([]);
+    });
+
+    test("generateShape propagates factory errors", () => {
+        restoreFactory = mockShapeFactory({
+            line: () => Result.err("line failed"),
+            circle: () => Result.ok(fakeShape("circle")),
+            combine: () => Result.ok(fakeShape("compound")),
+        });
+        const node = new SketchNode({ document: doc, plane, data: DATA });
+        const result = node.generateShape();
+        expect(result.isOk).toBe(false);
+        expect(result.error).toBe("line failed");
+    });
+
+    test("setDataEmitShapeChanged updates data and regenerates the shape", () => {
+        const { combine } = setupFactory();
+        const node = new SketchNode({ document: doc, plane, data: DATA });
+        // Force the lazy first shape generation so we only count the regeneration below.
+        expect(node.shape.isOk).toBe(true);
+        combine.mockClear();
+        const handler = rs.fn((_property: string) => {});
+        node.onPropertyChanged(handler);
+
+        const newData: SketchData = {
+            entities: [
+                { id: 1, type: "line", params: [0, 0, 1, 1] },
+                { id: 2, type: "line", params: [1, 1, 2, 2] },
+            ],
+            constraints: [],
+        };
+        node.setDataEmitShapeChanged(newData);
+
+        expect(node.data).toEqual(newData);
+        expect(handler.mock.calls.map((c) => c[0])).toContain("dataJson");
+        expect(combine).toHaveBeenCalledTimes(1);
+    });
+
+    test("dataJson changes are undoable and redoable through the property setter", () => {
+        setupFactory();
+        const testDoc = new TestDocument({ application: createMockApplication() });
+        const node = new SketchNode({ document: testDoc, plane, data: DATA });
+        const newData: SketchData = {
+            entities: [{ id: 1, type: "line", params: [0, 0, 1, 1] }],
+            constraints: [],
+        };
+
+        Transaction.execute(testDoc, "edit sketch", () => node.setDataEmitShapeChanged(newData));
+        expect(node.data).toEqual(newData);
+
+        testDoc.history.undo();
+        expect(node.data).toEqual(DATA);
+
+        testDoc.history.redo();
+        expect(node.data).toEqual(newData);
+    });
+
+    test("Serializer round-trips plane and data", () => {
+        setupFactory();
+        const node = new SketchNode({ document: doc, plane, data: DATA });
+
+        const serialized = Serializer.serializeObject(node);
+        expect(serialized["dataJson"]).toBe(JSON.stringify(DATA));
+
+        const restored = Serializer.deserializeObject(doc, serialized) as SketchNode;
+        expect(restored).toBeInstanceOf(SketchNode);
+        expect(restored.plane.origin.x).toBe(node.plane.origin.x);
+        expect(restored.plane.origin.z).toBe(5);
+        expect(restored.plane.normal.z).toBe(1);
+        expect(restored.plane.xvec.x).toBe(1);
+        expect(restored.data).toEqual(DATA);
+    });
+
+    test("profile faces join the mesh unless showProfileFaces is turned off", () => {
+        const face = {
+            isEqual: () => false,
+            matrix: Matrix4.identity(),
+            mesh: {
+                faces: {
+                    index: new Uint32Array([0, 1, 2]),
+                    normal: new Float32Array(9),
+                    position: new Float32Array(9),
+                    uv: new Float32Array(6),
+                    range: [] as any[],
+                    groups: [],
+                    color: 0,
+                },
+                edges: undefined,
+            },
+        };
+        face.mesh.faces.range = [{ start: 0, count: 3, shape: face }];
+        const edges: any[] = [];
+        const compound = {
+            isEqual: () => false,
+            matrix: Matrix4.identity(),
+            findSubShapes: (type: ShapeType) => (type === ShapeTypes.edge ? edges : []),
+            mesh: {
+                edges: {
+                    lineType: "solid",
+                    position: new Float32Array([0, 0, 0, 1, 0, 0]),
+                    range: [] as any[],
+                    color: 0,
+                },
+                faces: undefined,
+            },
+        };
+        restoreFactory = mockShapeFactory({
+            line: (start: XYZ, end: XYZ) => {
+                const e = {
+                    curve: { nearestFromPoint: (point: XYZ) => nearestOnSegment(start, end, point) },
+                    startPoint: () => start,
+                    endPoint: () => end,
+                    firstParameter: () => 0,
+                    lastParameter: () => 1,
+                    pointAt: (t: number) => start.add(end.sub(start).multiply(t)),
+                    intersect: () => [],
+                    boundingBox: () =>
+                        new BoundingBox(
+                            {
+                                x: Math.min(start.x, end.x),
+                                y: Math.min(start.y, end.y),
+                                z: Math.min(start.z, end.z),
+                            },
+                            {
+                                x: Math.max(start.x, end.x),
+                                y: Math.max(start.y, end.y),
+                                z: Math.max(start.z, end.z),
+                            },
+                        ),
+                    isEqual: () => false,
+                };
+                edges.push(e);
+                return Result.ok(e);
+            },
+            combine: () => Result.ok(compound),
+            wire: (es: any[]) => Result.ok({ isClosed: () => es.length > 1, edges: es }),
+            face: () => Result.ok(face),
+        });
+        const square: SketchData = {
+            entities: [
+                { id: 1, type: "line", params: [0, 0, 1, 0] },
+                { id: 2, type: "line", params: [1, 0, 1, 1] },
+                { id: 3, type: "line", params: [1, 1, 0, 1] },
+                { id: 4, type: "line", params: [0, 1, 0, 0] },
+            ],
+            constraints: [],
+        };
+        const node = new SketchNode({ document: doc, plane, data: square });
+
+        // Profile faces are shown by default so they stay pickable outside sketch editing.
+        expect(node.showProfileFaces).toBe(true);
+        expect(node.mesh.faces).toBeDefined();
+        expect(node.mesh.faces!.range.length).toBe(1);
+        expect(node.mesh.faces!.range[0].shape).toBe(face);
+        expect(node.mesh.edges!.lineWidth).toBe(2);
+
+        node.setShowProfileFaces(false);
+        expect(node.mesh.faces).toBeUndefined();
+        expect(node.mesh.edges!.lineWidth).toBe(2);
+
+        node.setShowProfileFaces(true);
+        expect(node.mesh.faces).toBeDefined();
+        expect(node.mesh.faces!.range.length).toBe(1);
+    });
+
+    test("danglingProfileRefs returns only refs that are both dangling and profile-role", () => {
+        const ref = (
+            entityId: number,
+            role: ExternalRefData["role"],
+            dangling?: boolean,
+        ): ExternalRefData => ({
+            entityId,
+            nodeId: "src",
+            edge: { kind: "line", start: { x: 0, y: 0, z: 0 }, end: { x: 1, y: 0, z: 0 } },
+            role,
+            snapshot: [0, 0, 1, 0],
+            type: "line",
+            ...(dangling === true ? { dangling: true } : {}),
+        });
+        const danglingProfile = ref(-100, "profile", true);
+        const resolvedProfile = ref(-101, "profile");
+        const danglingReference = ref(-102, "reference", true);
+        const node = new SketchNode({
+            document: doc,
+            plane,
+            data: {
+                entities: [],
+                constraints: [],
+                externalRefs: [danglingProfile, resolvedProfile, danglingReference],
+            },
+        });
+
+        expect(danglingProfileRefs(node)).toEqual([danglingProfile]);
+        expect(danglingProfileRefs(new SketchNode({ document: doc, plane }))).toEqual([]);
+    });
+});

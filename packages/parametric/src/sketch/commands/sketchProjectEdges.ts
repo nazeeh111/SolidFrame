@@ -1,0 +1,182 @@
+// Part of the Chili3d Project, under the AGPL-3.0 License.
+// See LICENSE file in the project root for full license information.
+
+import {
+    AsyncController,
+    Combobox,
+    command,
+    type I18nKeys,
+    type IEdge,
+    type INode,
+    type Plane,
+    PubSub,
+    property,
+    ShapeTypes,
+    type VisualShapeData,
+} from "@chili3d/core";
+import { isBodyTrackingNode } from "../../features/bodyTracking";
+import { sameEdgeFingerprint } from "../../features/edgeRef";
+import { reportSilentIdLoss } from "../../features/idDiagnostics";
+import { ParametricBodyNode } from "../../parametricBodyNode";
+import type { SketchEditor } from "../editor/sketchEditor";
+import { captureExternalRef, isEdgeCoplanarWithPlane } from "../externalRef";
+import { type ExternalRefData, isExternalEntityId } from "../sketchModel";
+import { SketchConstraintCommand } from "./sketchConstraints";
+
+const ROLE_REFERENCE: I18nKeys = "option.command.externalRole.reference";
+
+/** Same source edge: identical kernel edgeId when both carry one, else identical fingerprint. */
+function sameExternalEdge(a: ExternalRefData, b: ExternalRefData): boolean {
+    if (a.nodeId !== b.nodeId) return false;
+    if (a.edge.edgeId !== undefined && b.edge.edgeId !== undefined) {
+        return a.edge.edgeId === b.edge.edgeId;
+    }
+    return sameEdgeFingerprint(a.edge, b.edge);
+}
+
+/**
+ * The owner's tracked edge id for a picked sub-shape. A tracking body that cannot
+ * produce one reports the loss instead of letting the ref silently lose its id.
+ */
+function pickedEdgeTrackedId(owner: INode, index: number): string | undefined {
+    if (!isBodyTrackingNode(owner)) return undefined;
+    const edgeId = owner.edgeIdAt(index);
+    if (edgeId === undefined) {
+        reportSilentIdLoss(owner, "edge", "a projected edge has no tracked id");
+    }
+    return edgeId;
+}
+
+/**
+ * Anchors the body's timeline position on its first reference — a body referenced for
+ * the first time is anchored as it is now. Mid-session the body shows its rollback
+ * preview: the picked edge comes from the preview, so the anchor must be the rollback
+ * position — `features.length` would read as "no rollback" to both consumers and
+ * resolve the ref against geometry the user never saw.
+ */
+function anchorBodyTimeline(editor: SketchEditor, owner: INode): void {
+    if (owner instanceof ParametricBodyNode) {
+        editor.solver.recordRefPosition(owner.id, owner.rollbackIndex ?? owner.features.length);
+    }
+}
+
+function projectEdge(
+    editor: SketchEditor,
+    plane: Plane,
+    picked: VisualShapeData,
+    role: ExternalRefData["role"],
+    existing: ExternalRefData[],
+): boolean {
+    const worldEdge = (picked.shape as IEdge).transformedMul(picked.transform) as IEdge;
+    try {
+        if (!isEdgeCoplanarWithPlane(plane, worldEdge)) return false;
+        const owner = picked.owner.node;
+        const edgeId = pickedEdgeTrackedId(owner, picked.indexes[0]);
+        // solver-side monotonic counter — deleted ids are never reissued
+        const ref = captureExternalRef(
+            editor.solver.allocateExternalEntityId(),
+            owner.id,
+            plane,
+            worldEdge,
+            edgeId,
+            role,
+        );
+        if (ref === undefined || existing.some((r) => sameExternalEdge(r, ref))) return false;
+        // an explicitly chosen profile role is pinned, or the next role
+        // derivation would revert it while no constraint references the edge
+        if (role === "profile") ref.pinned = true;
+        editor.solver.addExternalEntity(ref);
+        anchorBodyTimeline(editor, owner);
+        existing.push(ref);
+        return true;
+    } finally {
+        worldEdge.dispose();
+    }
+}
+
+/**
+ * Projects picked scene edges onto the active sketch as external references.
+ * Only edges coplanar with the sketch plane whose curve is a line or a circle
+ * (full or trimmed) can be projected; the role option decides whether they also
+ * participate in profile building.
+ */
+@command({ key: "sketch.projectEdges", icon: "icon-projectEdges" })
+export class ProjectSketchEdges extends SketchConstraintCommand {
+    @property("option.command.externalRole", {
+        combobox: Combobox.from([ROLE_REFERENCE, "option.command.externalRole.profile"] satisfies I18nKeys[]),
+    })
+    get role(): I18nKeys {
+        return this.getPrivateValue("role", ROLE_REFERENCE);
+    }
+    set role(value: I18nKeys) {
+        this.setProperty("role", value);
+    }
+
+    protected async executeWithEditor(editor: SketchEditor): Promise<void> {
+        const document = editor.document;
+        this.controller = new AsyncController();
+        const picked = await document.picker.pickShape("prompt.select.edges", this.controller, {
+            shapeType: ShapeTypes.edge,
+            multi: true,
+            // projecting the sketch's own edges is pointless
+            nodeFilter: { allow: (node) => node !== editor.node },
+        });
+        this.controller.dispose();
+        document.selection.clearSelection();
+        if (picked.length === 0) return;
+
+        const plane = editor.node.plane;
+        const existing = editor.solver.toData().externalRefs ?? [];
+        const role: ExternalRefData["role"] = this.role === ROLE_REFERENCE ? "reference" : "profile";
+        let added = 0;
+        for (const x of picked) {
+            if (projectEdge(editor, plane, x, role, existing)) added++;
+        }
+        if (added === 0) {
+            PubSub.default.pub("displayError", "sketch.noProjectableEdges");
+            return;
+        }
+        editor.refreshExternalDisplay();
+        editor.solve(true);
+        editor.commit();
+    }
+}
+
+const flipRole = (role: ExternalRefData["role"]): ExternalRefData["role"] =>
+    role === "reference" ? "profile" : "reference";
+
+/**
+ * Flips picked external references between reference and profile roles — profile-role
+ * edges join profile building (they close loops into faces), reference-role ones stay
+ * construction-only. Picks repeat until ESC; a single commit records all flips.
+ */
+@command({ key: "sketch.toggleExternal", icon: "icon-toggleExternal" })
+export class ToggleSketchExternalRole extends SketchConstraintCommand {
+    protected async executeWithEditor(editor: SketchEditor): Promise<void> {
+        let flipped = false;
+        while (true) {
+            this.controller = new AsyncController();
+            const id = await editor.pickEntity(
+                "prompt.pickExternalRef",
+                undefined,
+                undefined,
+                this.controller,
+            );
+            this.controller.dispose();
+            if (id === undefined) break;
+            if (!isExternalEntityId(id)) {
+                PubSub.default.pub("statusBarTip", "prompt.pickExternalRef");
+                continue;
+            }
+            // geometry is untouched — syncExternalRefs only adopts the flipped roles;
+            // pinning marks the explicit choice so role auto-derivation keeps it
+            const refs = (editor.solver.toData().externalRefs ?? []).map((ref) =>
+                ref.entityId === id ? { ...ref, role: flipRole(ref.role), pinned: true } : ref,
+            );
+            editor.solver.syncExternalRefs(refs);
+            editor.refreshExternalDisplay();
+            flipped = true;
+        }
+        if (flipped) editor.commit();
+    }
+}

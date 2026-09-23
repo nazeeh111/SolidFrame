@@ -1,0 +1,12 @@
+SolidFrame is an independent derivative of Chili3D.
+Upstream: https://github.com/xiangechen/chili3d
+Source baseline: 03a6a542e841a7f1952f67aa729e0658a8096c08
+Original author: 仙阁 (Xiange Chen) and Chili3D contributors.
+
+SolidFrame adaptations (2026) by nazeeh111 include the workspace identity and interface,
+original mark and fixture illustration, native editable fixture example, startup safety,
+local-storage namespacing, dependency maintenance, and deployment improvements.
+
+The original copyright notices and AGPL-3.0 license are preserved.
+The C++/WASM component retains cpp/LICENSE-chili-wasm.txt.
+This notice does not relicense any upstream or third-party component.

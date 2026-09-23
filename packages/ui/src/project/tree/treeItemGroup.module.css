@@ -1,0 +1,40 @@
+.expanderIcon {
+    width: 12px;
+    height: 12px;
+    padding: 2px 4px;
+}
+
+.toolExpanderIcon {
+    width: 9px;
+    height: 9px;
+    padding: 3px 5px;
+    color: var(--foreground-muted-color);
+}
+
+.left16px {
+    padding-left: 16px;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+}
+
+.hide {
+    display: none;
+}
+
+.header {
+    padding: 4px;
+    border-radius: 2px;
+}
+
+.header:hover {
+    background-color: var(--hover-background-color);
+}
+
+.row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
