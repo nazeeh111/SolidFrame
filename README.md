@@ -66,6 +66,6 @@ npm run check
 
 ## Origin and licensing
 
-Adapted from Chili3D commit [`03a6a542e841a7f1952f67aa729e0658a8096c08`](https://github.com/xiangechen/chili3d/commit/03a6a542e841a7f1952f67aa729e0658a8096c08). The original author and contributors retain their copyrights. This is an independent derivative, not an official upstream release. Repository history and the original source headers are preserved.
+Adapted from Chili3D commit [`03a6a542e841a7f1952f67aa729e0658a8096c08`](https://github.com/xiangechen/chili3d/commit/03a6a542e841a7f1952f67aa729e0658a8096c08). The original author and contributors retain their copyrights. This is an independent derivative, not an official upstream release. The original source headers and license notices are preserved; this repository has a fresh publication history.
 
 Application code is licensed under [AGPL-3.0](LICENSE); the C++/WASM component carries [its existing LGPL notice](cpp/LICENSE-chili-wasm.txt). Third-party dependencies retain their own licenses. The running app links to corresponding source and license notices from **About & licenses**. See [upstream documentation](UPSTREAM_README.md) for architecture and C++ development details, and [NOTICE](NOTICE) for adaptation attribution.
