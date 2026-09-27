@@ -18,3 +18,11 @@ Observed locally on 2026-09-23:
 - Final npm audit reported zero known advisories. The audit is time-sensitive and should be rerun before later releases.
 
 Browser release QA confirmed that the seven-part fixture renders, its base plate width can be edited from 70 to 90 mm, and saving then reopening it from Recent projects after a page reload preserves the edit. The CAD workspace starts with the AI panel closed. Native file download/reimport and completed exchange-format downloads remain separate checks. Optional AI provider calls and user-supplied executable plugins are outside this verification.
+
+## Browser storage commit handling (2026-09-27)
+
+Save and delete now wait for the IndexedDB transaction's `complete` event. A successful request can still be followed by a transaction abort; an aborted transaction rejects the operation instead of reporting success. Six new regressions failed on the prior implementation and passed after the change. A save-command regression confirms that a rejected save does not publish the saved toast.
+
+The local full suite passed 6,135 tests across 376 files with no skipped tests on Node.js 24.14.0/macOS. Four additional request-error and synchronous-exception cases then passed in the focused 27-test storage suite. The production application and both bundled plugins built successfully; bundle-size warnings remain. The storage fixture separates request success from transaction completion and abort; it does not simulate browser isolation or rollback. This change does not combine the document and Recent-project entry into one transaction or make browser storage a backup.
+
+Reference: [IndexedDB transaction completion](https://developer.mozilla.org/en-US/docs/Web/API/IDBTransaction/complete_event).

@@ -10,8 +10,10 @@
  * `open` / `onupgradeneeded` / `transaction` / `objectStore` / `get` / `put` /
  * `delete` / `openCursor` + the `IDBRequest` success/error callbacks.
  *
- * Callbacks fire on a microtask so `await` resolves the same way it would in
- * a browser. `failNextOpen` lets a test simulate a connection failure.
+ * Callbacks use microtasks for deterministic tests, not browser task scheduling.
+ * Write transactions expose completion/abort separately from request success.
+ * This shim does not model transaction isolation or rollback.
+ * `failNextOpen` lets a test simulate a connection failure.
  */
 
 type Value = unknown;
@@ -27,9 +29,12 @@ class FakeRequest<T> {
         this.error = undefined;
     }
 
-    succeed(value: T): void {
+    succeed(value: T, afterSuccess?: () => void): void {
         this.result = value;
-        queueMicrotask(() => this.onsuccess?.({ target: this }));
+        queueMicrotask(() => {
+            this.onsuccess?.({ target: this });
+            afterSuccess?.();
+        });
     }
 
     fail(error: unknown): void {
@@ -84,7 +89,10 @@ class FakeObjectStore {
     name: string;
     records: Map<IDBValidKey, Value> = new Map();
 
-    constructor(name: string) {
+    constructor(
+        name: string,
+        private readonly onWriteSuccess?: () => void,
+    ) {
         this.name = name;
     }
 
@@ -98,7 +106,7 @@ class FakeObjectStore {
         const request = new FakeRequest<IDBValidKey>();
         queueMicrotask(() => {
             this.records.set(key, value);
-            request.succeed(key);
+            request.succeed(key, this.onWriteSuccess);
         });
         return request;
     }
@@ -107,7 +115,7 @@ class FakeObjectStore {
         const request = new FakeRequest<undefined>();
         queueMicrotask(() => {
             this.records.delete(key);
-            request.succeed(undefined);
+            request.succeed(undefined, this.onWriteSuccess);
         });
         return request;
     }
@@ -133,11 +141,31 @@ class FakeObjectStore {
 class FakeTransaction {
     stores: Map<string, FakeObjectStore> = new Map();
 
+    requestSucceeded = false;
+    error: unknown = null;
+    oncomplete: (() => void) | null = null;
+    onabort: ((event: { target: FakeTransaction }) => void) | null = null;
+    onerror: ((event: { target: FakeTransaction }) => void) | null = null;
+
+    complete(): void {
+        this.oncomplete?.();
+    }
+
+    abort(error: unknown = null): void {
+        this.error = error;
+        this.onabort?.({ target: this });
+    }
+
     constructor(names: string[], db: FakeDatabase) {
         for (const name of names) {
             const store = db.stores.get(name);
             if (store) {
-                this.stores.set(name, store);
+                const transactionStore = new FakeObjectStore(name, () => {
+                    this.requestSucceeded = true;
+                    if (db.autoCompleteWrites) queueMicrotask(() => this.complete());
+                });
+                transactionStore.records = store.records;
+                this.stores.set(name, transactionStore);
             }
         }
     }
@@ -159,6 +187,8 @@ class FakeDatabase {
         contains: (name: string) => this.stores.has(name),
     };
     closed = false;
+    autoCompleteWrites = true;
+    lastTransaction: FakeTransaction | undefined;
 
     constructor(name: string, version = 1) {
         this.name = name;
@@ -166,7 +196,8 @@ class FakeDatabase {
     }
 
     transaction(names: string[], _mode: string): FakeTransaction {
-        return new FakeTransaction(names, this);
+        this.lastTransaction = new FakeTransaction(names, this);
+        return this.lastTransaction;
     }
 
     createObjectStore(name: string): FakeObjectStore {
@@ -209,6 +240,7 @@ export function createFakeIndexedDB(): FakeIndexedDB {
                 }
 
                 const existing = databases.get(name);
+                if (existing) existing.closed = false;
                 if (!existing) {
                     const created = new FakeDatabase(name, version ?? 1);
                     databases.set(name, created);

@@ -212,6 +212,23 @@ describe("SaveDocument callback", () => {
         }
     });
 
+    test("should not report saved when storage rejects the save", async () => {
+        const { state, app, restore } = setupCallbackTest();
+        const failure = new DOMException("Transaction aborted", "AbortError");
+        app.activeView!.document.save = async () => {
+            throw failure;
+        };
+
+        try {
+            await new SaveDocument().execute(app);
+            expect(state.callback).not.toBeUndefined();
+            await expect(state.callback!()).rejects.toBe(failure);
+            expect(state.toastChannel).toBe("");
+        } finally {
+            restore();
+        }
+    });
+
     test("should not publish showPermanent when activeView is undefined", async () => {
         let published = false;
         const originalPub = PubSub.default.pub;

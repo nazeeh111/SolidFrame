@@ -144,11 +144,17 @@ export class IndexedDBStorage implements IStorage {
     }
 
     private static delete(db: IDBDatabase, storeName: string, key: string): Promise<boolean> {
-        const request = db.transaction([storeName], "readwrite").objectStore(storeName).delete(key);
+        const transaction = db.transaction([storeName], "readwrite");
+        const request = transaction.objectStore(storeName).delete(key);
         return new Promise((resolve, reject) => {
-            request.onsuccess = () => {
+            // Request success precedes commit and can still be followed by an abort.
+            transaction.oncomplete = () => {
                 Logger.info(`${storeName} store delete object success`);
                 resolve(true);
+            };
+            transaction.onabort = () => {
+                Logger.error(`${storeName} store write transaction aborted`);
+                reject(transaction.error ?? new DOMException("Write transaction aborted", "AbortError"));
             };
             request.onerror = (e) => {
                 Logger.error(`${storeName} store delete object error`);
@@ -158,11 +164,17 @@ export class IndexedDBStorage implements IStorage {
     }
 
     private static put(db: IDBDatabase, storeName: string, key: IDBValidKey, value: any): Promise<boolean> {
-        const request = db.transaction([storeName], "readwrite").objectStore(storeName).put(value, key);
+        const transaction = db.transaction([storeName], "readwrite");
+        const request = transaction.objectStore(storeName).put(value, key);
         return new Promise((resolve, reject) => {
-            request.onsuccess = () => {
+            // Request success precedes commit and can still be followed by an abort.
+            transaction.oncomplete = () => {
                 Logger.info(`${storeName} store put object success`);
                 resolve(true);
+            };
+            transaction.onabort = () => {
+                Logger.error(`${storeName} store write transaction aborted`);
+                reject(transaction.error ?? new DOMException("Write transaction aborted", "AbortError"));
             };
             request.onerror = (e) => {
                 Logger.error(`${storeName} store put object error`);

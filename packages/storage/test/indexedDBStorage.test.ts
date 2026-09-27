@@ -118,6 +118,127 @@ describe("IndexedDBStorage", () => {
         });
     });
 
+    describe.each(["put", "delete"] as const)("%s transaction completion", (operation) => {
+        beforeEach(async () => {
+            await storage.createDBIfNeeded(DB, [TABLE]);
+            fake.databases.get(DB)!.autoCompleteWrites = false;
+        });
+
+        const write = (operation: "put" | "delete") =>
+            operation === "put"
+                ? storage.put(DB, TABLE, "id1", { name: "alpha" })
+                : storage.delete(DB, TABLE, "id1");
+
+        test("waits for commit after request success and keeps the connection open", async () => {
+            let settled = false;
+            const pending = write(operation).then((result) => {
+                settled = true;
+                return result;
+            });
+            // Drain the fake's request callbacks and promise reactions before completion.
+            await new Promise((resolve) => setTimeout(resolve, 0));
+            const db = fake.databases.get(DB)!;
+            expect(settled).toBe(false);
+            expect(db.closed).toBe(false);
+            expect(db.lastTransaction).toBeDefined();
+            expect(db.lastTransaction!.requestSucceeded).toBe(true);
+            db.lastTransaction!.complete();
+            await expect(pending).resolves.toBe(true);
+            expect(db.closed).toBe(true);
+        });
+
+        test("rejects an abort after request success and closes the connection", async () => {
+            const pending = write(operation);
+            await new Promise((resolve) => setTimeout(resolve, 0));
+            const db = fake.databases.get(DB)!;
+            const error = new DOMException("Commit failed", "QuotaExceededError");
+            const rejected = expect(pending).rejects.toBe(error);
+            expect(db.lastTransaction).toBeDefined();
+            expect(db.lastTransaction!.requestSucceeded).toBe(true);
+            db.lastTransaction!.abort(error);
+            await rejected;
+            expect(db.closed).toBe(true);
+        });
+
+        test("rejects an explicit abort even when the transaction has no error", async () => {
+            const pending = write(operation);
+            await new Promise((resolve) => setTimeout(resolve, 0));
+            const db = fake.databases.get(DB)!;
+            const rejected = expect(pending).rejects.toHaveProperty("name", "AbortError");
+            expect(db.lastTransaction).toBeDefined();
+            expect(db.lastTransaction!.requestSucceeded).toBe(true);
+            db.lastTransaction!.abort();
+            await rejected;
+            expect(db.closed).toBe(true);
+        });
+    });
+
+    describe.each(["put", "delete"] as const)("%s write failures", (operation) => {
+        beforeEach(async () => {
+            await storage.createDBIfNeeded(DB, [TABLE]);
+        });
+
+        test("preserves the request error and closes the connection", async () => {
+            const db = fake.databases.get(DB)!;
+            const originalTransaction = db.transaction.bind(db);
+            const error = new DOMException("Request failed", "QuotaExceededError");
+            const transactionSpy = rs.spyOn(db, "transaction").mockImplementation((names, mode) => {
+                const transaction = originalTransaction(names, mode);
+                const store = transaction.objectStore(TABLE);
+                if (operation === "put") {
+                    const put = store.put.bind(store);
+                    store.put = (value, key) => {
+                        const request = put(value, key);
+                        request.succeed = () => request.fail(error);
+                        return request;
+                    };
+                } else {
+                    const remove = store.delete.bind(store);
+                    store.delete = (key) => {
+                        const request = remove(key);
+                        request.succeed = () => request.fail(error);
+                        return request;
+                    };
+                }
+                return transaction;
+            });
+            try {
+                const pending =
+                    operation === "put"
+                        ? storage.put(DB, TABLE, "id1", { a: 1 })
+                        : storage.delete(DB, TABLE, "id1");
+                await expect(pending).rejects.toHaveProperty("target.error", error);
+                expect(db.closed).toBe(true);
+            } finally {
+                transactionSpy.mockRestore();
+            }
+        });
+
+        test("rejects a synchronous object-store error and closes the connection", async () => {
+            const db = fake.databases.get(DB)!;
+            const originalTransaction = db.transaction.bind(db);
+            const error = new DOMException("Invalid value or key", "DataError");
+            const transactionSpy = rs.spyOn(db, "transaction").mockImplementation((names, mode) => {
+                const transaction = originalTransaction(names, mode);
+                const store = transaction.objectStore(TABLE);
+                store[operation] = () => {
+                    throw error;
+                };
+                return transaction;
+            });
+            try {
+                const pending =
+                    operation === "put"
+                        ? storage.put(DB, TABLE, "id1", { a: 1 })
+                        : storage.delete(DB, TABLE, "id1");
+                await expect(pending).rejects.toBe(error);
+                expect(db.closed).toBe(true);
+            } finally {
+                transactionSpy.mockRestore();
+            }
+        });
+    });
+
     describe("page", () => {
         beforeEach(async () => {
             await storage.createDBIfNeeded(DB, [TABLE]);
