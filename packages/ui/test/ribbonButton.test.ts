@@ -101,6 +101,32 @@ describe("RibbonPushButton", () => {
     });
 
     describe("click", () => {
+        test.each(["Enter", " "])("should activate once with %s and stop viewport shortcuts", (key) => {
+            const onClick = rs.fn(() => {});
+            const btn = new RibbonPushButton(PUSH_KEY, "icon-test", "large", onClick);
+            const parent = document.createElement("div");
+            const parentKeyDown = rs.fn(() => {});
+            parent.addEventListener("keydown", parentKeyDown);
+            parent.append(btn);
+            const event = new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true });
+            btn.dispatchEvent(event);
+            btn.dispatchEvent(new KeyboardEvent("keydown", { key, repeat: true }));
+            expect(btn.getAttribute("role")).toBe("button");
+            expect(btn.tabIndex).toBe(0);
+            expect(onClick).toHaveBeenCalledTimes(1);
+            expect(event.defaultPrevented).toBe(true);
+            expect(parentKeyDown).not.toHaveBeenCalled();
+        });
+
+        test("should block pointer and keyboard activation while disabled", () => {
+            const onClick = rs.fn(() => {});
+            const btn = new RibbonPushButton(PUSH_KEY, "icon-test", "small", onClick);
+            btn.setAttribute("aria-disabled", "true");
+            btn.click();
+            btn.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
+            expect(onClick).not.toHaveBeenCalled();
+        });
+
         test("should invoke onClick callback", () => {
             const onClick = rs.fn(() => {});
             const btn = new RibbonPushButton(PUSH_KEY, "icon-test", "large", onClick);

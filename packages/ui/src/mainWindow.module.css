@@ -167,6 +167,12 @@ chili3d-main-window {
     --input-text-color: #e7e4de;
     --button-primary-background: #ac5e39;
     --button-primary-hover: #ac5e39;
+    --tool-background: #263137;
+    --tool-hover: #354149;
+    --tool-active: #493a31;
+    --tool-accent: #e3a078;
+    --tool-accent-border: #9c6a4c;
+    --tool-border: #3b474e;
 }
 :root[theme="light"] {
     --primary-color: #a54f2c;
@@ -182,4 +188,10 @@ chili3d-main-window {
     --viewport-background-color: #c5cdcf;
     --button-primary-background: #a54f2c;
     --button-primary-hover: #884021;
+    --tool-background: #f0eee8;
+    --tool-hover: #e6e2d8;
+    --tool-active: #f0dfd2;
+    --tool-accent: #90451f;
+    --tool-accent-border: #ad7351;
+    --tool-border: #d2d2c8;
 }

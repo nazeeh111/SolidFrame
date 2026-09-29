@@ -49,7 +49,7 @@
 
             &::-webkit-scrollbar-thumb {
                 background-color: var(--foreground-muted-color);
-                border-radius: 3px;
+                border-radius: 50%;
             }
 
             &::-webkit-scrollbar-track {
@@ -131,27 +131,29 @@
         width: 22px;
         height: 22px;
         padding: 8px;
-        border-radius: 7.5px;
+        border-radius: 50%;
         color: inherit;
         fill: currentColor;
 
         &:hover {
-            background: var(--hover-background-color);
+            background: var(--tool-hover);
         }
 
         &:active {
-            background: var(--active-background-color);
+            background: var(--tool-active);
         }
     }
 
     .actived {
-        background: var(--checked-color);
+        background: var(--tool-active);
+        color: var(--tool-accent);
+        box-shadow: inset 0 0 0 1px var(--tool-accent-border);
     }
 
     .border {
-        border: 1px solid var(--border-color);
+        border: 1px solid var(--tool-border);
         background: var(--panel-background-color);
-        border-radius: 10px;
+        border-radius: 24px;
         margin: 1px 0px;
         padding: 2px;
         pointer-events: all;
@@ -166,7 +168,7 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            border-radius: 7.5px;
+            border-radius: 50%;
             color: inherit;
         }
     }

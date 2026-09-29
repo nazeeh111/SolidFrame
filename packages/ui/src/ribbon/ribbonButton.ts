@@ -35,7 +35,10 @@ export class RibbonPushButton extends HTMLElement {
     ) {
         super();
         this.initHTML(display ?? `command.${commandName}`, icon, size);
-        this.addEventListener("click", onClick);
+        this.setAttribute("role", "button");
+        this.tabIndex = 0;
+        this.addEventListener("click", this.handleClick);
+        this.addEventListener("keydown", this.handleKeyDown);
     }
 
     static fromCommandName(commandName: CommandKeys, size: ButtonSize) {
@@ -54,8 +57,20 @@ export class RibbonPushButton extends HTMLElement {
     }
 
     dispose(): void {
-        this.removeEventListener("click", this.onClick);
+        this.removeEventListener("click", this.handleClick);
+        this.removeEventListener("keydown", this.handleKeyDown);
     }
+
+    private readonly handleClick = () => {
+        if (!this.closest('[aria-disabled="true"], [inert]')) this.onClick();
+    };
+
+    private readonly handleKeyDown = (event: KeyboardEvent) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        event.stopPropagation();
+        if (!event.repeat) this.click();
+    };
 
     private initHTML(display: I18nKeys, icon: CommandIcon, size: ButtonSize) {
         const image = createIcon(icon);

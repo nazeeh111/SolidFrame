@@ -26,3 +26,11 @@ Save and delete now wait for the IndexedDB transaction's `complete` event. A suc
 The local full suite passed 6,135 tests across 376 files with no skipped tests on Node.js 24.14.0/macOS. Four additional request-error and synchronous-exception cases then passed in the focused 27-test storage suite. The production application and both bundled plugins built successfully; bundle-size warnings remain. The storage fixture separates request success from transaction completion and abort; it does not simulate browser isolation or rollback. This change does not combine the document and Recent-project entry into one transaction or make browser storage a backup.
 
 Reference: [IndexedDB transaction completion](https://developer.mozilla.org/en-US/docs/Web/API/IDBTransaction/complete_event).
+
+## Modeling controls (2026-09-29)
+
+The ribbon retains its commands and compact height, with softer tool surfaces, clearer group labels, and copper hover, focus and selected feedback in both themes. Existing push buttons now expose button semantics and activate with Enter or Space. Held keys do not repeat command dispatch; disabled controls reject pointer and keyboard activation. Split buttons and dropdown command behavior are unchanged.
+
+The focused ribbon, dropdown and viewport checks passed **54 tests across six files**. The three new activation and disabled tests failed before implementation. Production application and bundled-plugin builds passed with the existing three bundle-size warnings. `npm run check` passed without applying fixes; inherited warnings and suggestions remain. `git diff --check` passed.
+
+Actual browser checks created a box, selected and edited the fixture base from 100 to 110 mm, launched Move using Enter and completed a two-point transform. Save reported success; a page reload and Recent-project reopen retained the new box, edited length and transform. The primitive dropdown opened and closed with Escape; the End snap checkbox switched off and on. Both themes were inspected in the running workspace. These checks cover the exercised controls and local-project workflow, not every CAD operation or exchange format.

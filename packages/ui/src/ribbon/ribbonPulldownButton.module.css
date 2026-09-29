@@ -3,22 +3,21 @@
     flex-direction: column;
     align-items: center;
     padding: 4px;
-    margin: 0 4px;
+    margin: 0 3px;
     justify-content: flex-start;
-    border-radius: 4px;
+    border-radius: 7px;
     min-width: 42px;
     max-width: 100px;
     width: auto;
     min-height: 48px;
     height: auto;
-    cursor: default;
+    cursor: pointer;
     user-select: none;
     position: relative;
 }
 
 .pulldown:hover {
-    opacity: 0.85;
-    background-color: var(--hover-background-color);
+    background-color: var(--tool-hover);
 }
 
 .pulldownSmall {
@@ -26,16 +25,15 @@
     flex-direction: row;
     justify-items: top;
     padding: 4px;
-    margin: 0px 4px;
-    cursor: default;
+    margin: 0 3px;
+    cursor: pointer;
     user-select: none;
     position: relative;
-    border-radius: 4px;
+    border-radius: 7px;
 }
 
 .pulldownSmall:hover {
-    opacity: 0.85;
-    background-color: var(--hover-background-color);
+    background-color: var(--tool-hover);
 }
 
 .text {
@@ -86,7 +84,7 @@
     z-index: 1001;
     background-color: var(--panel-background-color);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: 7px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     min-width: 160px;
     padding: 0;
@@ -98,12 +96,12 @@
     flex-direction: row;
     align-items: center;
     padding: 6px 12px;
-    cursor: default;
+    cursor: pointer;
     user-select: none;
 }
 
 .dropdownItem:hover {
-    background-color: var(--hover-background-color);
+    background-color: var(--tool-hover);
 }
 
 .dropdownIcon {
@@ -117,4 +115,20 @@
     color: var(--foreground-color);
     font-size: 12px;
     white-space: nowrap;
+}
+
+.pulldown {
+    background: transparent;
+    border: 1px solid transparent;
+    box-sizing: border-box;
+}
+
+.pulldownSmall {
+    border: 1px solid transparent;
+    box-sizing: border-box;
+}
+
+.pulldown:hover,
+.pulldownSmall:hover {
+    border-color: transparent;
 }
