@@ -2,7 +2,7 @@
 
 Browser CAD with editable solids, parametric sketches, and local project files.
 
-SolidFrame adapts [Chili3D](https://github.com/xiangechen/chili3d), retaining its OpenCascade solid-modeling kernel, parametric sketches, feature history, geometry exchange, undo/redo, and local document storage. The graphite-and-copper workspace adds a focused project hub and an immediately editable workholding fixture.
+SolidFrame adapts [Chili3D](https://github.com/xiangechen/chili3d), retaining its OpenCascade solid-modeling kernel, parametric sketches, feature history, geometry exchange, undo/redo, and local document storage. It adds a project hub and an editable workholding fixture.
 
 [Open SolidFrame](https://nazeeh111.github.io/SolidFrame/) · [Source and license](LICENSE)
 
