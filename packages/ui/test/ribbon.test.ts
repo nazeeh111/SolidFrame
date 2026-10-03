@@ -180,7 +180,7 @@ describe("RibbonUI", () => {
         const titlePanel = mustQuery(ui, ".r-ribbon-title-panel");
         // children: home svg, quickCommands collection, split span, tab headers collection
         const quickContainer = titlePanel.children[1] as HTMLElement;
-        const quickButton = mustQuery(quickContainer, "span");
+        const quickButton = mustQuery(quickContainer, "button");
         quickButton.click();
         expect(published.some((p) => p.topic === "executeCommand" && p.args[0] === CMD_QUICK)).toBe(true);
     });
@@ -189,11 +189,25 @@ describe("RibbonUI", () => {
         const { ui, dataContent, tab2 } = createRibbonUI();
         const titlePanel = mustQuery(ui, ".r-ribbon-title-panel");
         const tabHeaderContainer = titlePanel.children[3] as HTMLElement;
-        const tabLabels = tabHeaderContainer.querySelectorAll("label");
+        const tabLabels = tabHeaderContainer.querySelectorAll("button");
         expect(tabLabels.length).toBe(2);
 
         (tabLabels[1] as HTMLElement).click();
         expect(dataContent.activeTab).toBe(tab2);
+    });
+
+    test("Tab traverses ribbon controls without reaching viewport keyboard handlers", () => {
+        const { ui } = createRibbonUI();
+        const parent = document.createElement("div");
+        parent.append(ui);
+        const viewportKeys = rs.fn();
+        parent.addEventListener("keydown", viewportKeys);
+        const key = new KeyboardEvent("keydown", { key: "Tab", bubbles: true, cancelable: true });
+        mustQuery(mustQuery(ui, ".r-ribbon-title-panel").children[1], "button").dispatchEvent(key);
+        expect(key.defaultPrevented).toBe(false);
+        expect(viewportKeys).not.toHaveBeenCalled();
+        parent.dispatchEvent(new KeyboardEvent("keydown", { key: "Tab", bubbles: true }));
+        expect(viewportKeys).toHaveBeenCalledTimes(1);
     });
 
     test("should publish doc.new when new-view button clicked", () => {

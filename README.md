@@ -2,7 +2,7 @@
 
 Browser CAD with editable solids, parametric sketches, and local project files.
 
-SolidFrame adapts [Chili3D](https://github.com/xiangechen/chili3d), retaining its OpenCascade solid-modeling kernel, parametric sketches, feature history, geometry exchange, undo/redo, and local document storage. It adds a project hub and an editable workholding fixture.
+SolidFrame is a CAD application developed and maintained by **Nazeeh Abdul-Hadi**. It brings solid modeling, parametric sketches, feature history, geometry exchange, and local document storage into a focused browser workspace. Nazeeh’s work includes the project hub, editable workholding fixture, workspace styling, keyboard-accessible modeling controls, startup safeguards, and deployment improvements.
 
 [Open SolidFrame](https://nazeeh111.github.io/SolidFrame/) · [Source and license](LICENSE)
 
@@ -45,9 +45,10 @@ The production site is in `dist/`. Serve it through HTTP, rather than opening it
 - Startup `?plugin=` links are ignored. `?url=` and `?model=` accept supported model/document files over HTTP(S); they cannot load executable `.chiliplugin` files. Intentional plugin imports remain available, and imported plugin code must be trusted.
 - The optional AI panel starts closed. Opening it explicitly presents a generic Completions API configuration with no endpoint, model, or key filled in. An explicit HTTP(S) endpoint, model, and session key are required before sending; provider-specific presets remain available by choice. These tools are not required or configured for the normal CAD workflow. No billed API is used by the sample, build, or verification workflow.
 
-## What changed from upstream
+## Project development
 
-- New SolidFrame project hub, matching light/dark workspace palettes, original mark and fixture illustration, branded loading and recoverable startup errors.
+- SolidFrame project hub, matching light/dark workspace palettes, original mark and fixture illustration, branded loading and recoverable startup errors.
+- A compact modeling ribbon with distinct command/menu targets, visible keyboard focus, and keyboard navigation through tool menus.
 - One-click native fixture with editable Box/Cylinder nodes, serialization support, and one undoable creation transaction.
 - No URL-authorized plugin execution, including the model-file alias path; signed model URLs now retain a correct filename.
 - Query/fragment-safe bundled plugin paths and subpath-compatible production assets.
@@ -64,8 +65,8 @@ npm run check
 
 `npm run check` is the upstream Biome command and **writes formatting fixes**. The test suite uses Rstest and Happy-DOM; geometry integration tests load the real local OpenCascade WASM. Added regressions exercise the editable sample's solid geometry, serialization and parameter updates, startup plugin restrictions, and deployment paths. Passing tests are bounded evidence, not a guarantee for every model, browser, or exchange file. See [verification](docs/solidframe-verification.md) for the exact observed checks and limits.
 
-## Origin and licensing
+## Source and licensing
 
-Adapted from Chili3D commit [`03a6a542e841a7f1952f67aa729e0658a8096c08`](https://github.com/xiangechen/chili3d/commit/03a6a542e841a7f1952f67aa729e0658a8096c08). The original author and contributors retain their copyrights. This is an independent derivative, not an official upstream release. The original source headers and license notices are preserved; this repository has a fresh publication history.
+SolidFrame builds on [Chili3D](https://github.com/xiangechen/chili3d) by 仙阁 (Xiange Chen) and its contributors, using source baseline [`03a6a542`](https://github.com/xiangechen/chili3d/commit/03a6a542e841a7f1952f67aa729e0658a8096c08). Their source headers and copyright notices are preserved.
 
-Application code is licensed under [AGPL-3.0](LICENSE); the C++/WASM component carries [its existing LGPL notice](cpp/LICENSE-chili-wasm.txt). Third-party dependencies retain their own licenses. The running app links to corresponding source and license notices from **About & licenses**. See [upstream documentation](UPSTREAM_README.md) for architecture and C++ development details, and [NOTICE](NOTICE) for adaptation attribution.
+Application code is licensed under [AGPL-3.0](LICENSE); the C++/WASM component carries [its existing LGPL notice](cpp/LICENSE-chili-wasm.txt). Third-party dependencies retain their own licenses. The running app links to corresponding source and license notices from **About & licenses**. See [upstream documentation](UPSTREAM_README.md) for architecture and C++ development details, and [NOTICE](NOTICE) for attribution.

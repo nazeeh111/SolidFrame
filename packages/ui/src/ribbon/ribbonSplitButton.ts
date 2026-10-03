@@ -2,7 +2,7 @@
 // See LICENSE file in the project root for full license information.
 
 import { type ButtonSize, Localize, type SplitButton } from "@chili3d/core";
-import { createIcon, div, label } from "@chili3d/element";
+import { button, createIcon, div, label } from "@chili3d/element";
 import { createDropdownItem, DropdownController, getItemData } from "./dropdownController";
 import buttonStyle from "./ribbonButton.module.css";
 import style from "./ribbonSplitButton.module.css";
@@ -12,6 +12,7 @@ export class RibbonSplitButton extends HTMLElement {
     #dropdown = new DropdownController(style.dropdown);
     #iconEl?: Element;
     #textEl?: Element;
+    #arrowEl?: HTMLButtonElement;
 
     constructor(
         readonly data: SplitButton,
@@ -41,9 +42,32 @@ export class RibbonSplitButton extends HTMLElement {
             textContent: new Localize(display),
         });
 
+        this.#arrowEl = button(
+            {
+                type: "button",
+                className: isLarge ? style.arrowButton : style.smallArrowButton,
+                title: new Localize("common.more"),
+                ariaHasPopup: "menu",
+                ariaExpanded: "false",
+                onclick: (e) => {
+                    e.stopPropagation();
+                    if (this.#dropdown.isOpened) this.#dropdown.close();
+                    else this.openDropdown();
+                },
+                onkeydown: (e) => {
+                    if (e.key === "ArrowDown") {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        this.openDropdown();
+                    }
+                },
+            },
+            div({ className: isLarge ? style.arrow : style.smallArrow }),
+        );
         this.append(
-            div(
+            button(
                 {
+                    type: "button",
                     className: isLarge ? style.mainArea : style.smallMainArea,
                     onclick: (e) => {
                         e.stopPropagation();
@@ -53,33 +77,21 @@ export class RibbonSplitButton extends HTMLElement {
                 this.#iconEl,
                 this.#textEl,
             ),
-            div(
-                {
-                    className: isLarge ? style.arrowButton : style.smallArrowButton,
-                    onclick: (e) => {
-                        e.stopPropagation();
-                        if (this.#dropdown.isOpened) {
-                            this.#dropdown.close();
-                        } else {
-                            this.openDropdown();
-                        }
-                    },
-                },
-                div({ className: isLarge ? style.arrow : style.smallArrow }),
-            ),
+            this.#arrowEl,
         );
     }
 
     private executePrimary() {
+        if (this.closest('[aria-disabled="true"], [inert]')) return;
         const item = this.data.items[this.#primaryIndex];
         if (!item) return;
         getItemData(item).onClick();
     }
 
     private openDropdown() {
-        if (this.#dropdown.isOpened || this.data.items.length === 0) return;
+        if (this.#dropdown.isOpened || this.data.items.length === 0 || !this.#arrowEl) return;
 
-        this.#dropdown.open(this, (dropdown) => {
+        this.#dropdown.open(this.#arrowEl, (dropdown) => {
             for (const [i, item] of this.data.items.entries()) {
                 dropdown.append(
                     createDropdownItem(

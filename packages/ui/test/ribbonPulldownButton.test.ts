@@ -53,6 +53,24 @@ describe("RibbonPulldownButton", () => {
         document.body.querySelectorAll(".rpd-dropdown").forEach((el) => el.remove());
     });
 
+    test.each(["Enter", " ", "ArrowDown"])("opens from %s and returns focus on Escape", (key) => {
+        CommandStore.registerCommand(TestCommand, { key: CMD_A, icon: "icon-a" });
+        const btn = new RibbonPulldownButton(makeData([CMD_A]), "large");
+        document.body.append(btn);
+        try {
+            btn.focus();
+            btn.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true }));
+            const item = mustQuery(document.body, '[role="menuitem"]');
+            expect(document.activeElement).toBe(item);
+            item.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+            expect(document.activeElement).toBe(btn);
+            expect(btn.getAttribute("aria-expanded")).toBe("false");
+        } finally {
+            btn.dispose();
+            btn.remove();
+        }
+    });
+
     describe("rendering", () => {
         test("should render large pulldown with icon, text and arrow", () => {
             const btn = new RibbonPulldownButton(makeData([]), "large");

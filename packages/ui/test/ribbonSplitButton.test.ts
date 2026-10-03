@@ -72,6 +72,22 @@ describe("RibbonSplitButton", () => {
         document.body.querySelectorAll(".rsb-dropdown").forEach((el) => el.remove());
     });
 
+    test("disabled split commands and menus cannot activate", () => {
+        const onClick = rs.fn();
+        const btn = new RibbonSplitButton(
+            makeSplitData([makePushButton(CMD_A, "icon-box", onClick)]),
+            "large",
+        );
+        btn.setAttribute("aria-disabled", "true");
+        document.body.append(btn);
+        mainArea(btn).click();
+        arrowButton(btn).click();
+        expect(onClick).not.toHaveBeenCalled();
+        expect(document.querySelector(".rsb-dropdown")).toBeNull();
+        btn.dispose();
+        btn.remove();
+    });
+
     describe("rendering", () => {
         test("should render nothing when items are empty", () => {
             const btn = new RibbonSplitButton(makeSplitData([]), "large");
