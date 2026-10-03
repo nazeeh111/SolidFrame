@@ -2,9 +2,10 @@
 // See LICENSE file in the project root for full license information.
 
 import { type ButtonSize, type CommandIcon, Localize, type PulldownButton } from "@chili3d/core";
-import { createIcon, div, label } from "@chili3d/element";
+import { div, label } from "@chili3d/element";
 import { createDropdownItem, DropdownController } from "./dropdownController";
 import buttonStyle from "./ribbonButton.module.css";
+import { createRibbonIcon } from "./ribbonIcon";
 import style from "./ribbonPulldownButton.module.css";
 
 export class RibbonPulldownButton extends HTMLElement {
@@ -31,7 +32,7 @@ export class RibbonPulldownButton extends HTMLElement {
     }
 
     private initHTML() {
-        const icon = createIcon(this.data.icon as CommandIcon);
+        const icon = createRibbonIcon(this.data.icon as CommandIcon);
         this.className = this.size === "large" ? style.pulldown : style.pulldownSmall;
         icon.classList.add(this.size === "large" ? buttonStyle.icon : buttonStyle.smallIcon);
 

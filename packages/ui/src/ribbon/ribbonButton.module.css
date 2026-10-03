@@ -1,39 +1,31 @@
 .normal,
 .small {
     display: flex;
-    border: 1px solid transparent;
-    border-radius: 5px;
+    flex-direction: row;
+    align-items: center;
+    gap: 7px;
+    background: var(--tool-background);
+    border: 1px solid var(--tool-border);
+    border-radius: 3px;
     box-sizing: border-box;
     cursor: pointer;
     user-select: none;
-    transition:
-        background-color 120ms,
-        border-color 120ms;
 }
 
 .normal {
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 4px;
-    margin: 0 3px;
-    min-width: 48px;
-    max-width: 100px;
-    height: 72px;
-    background: transparent;
+    padding: 5px 9px;
+    min-width: 96px;
+    height: 34px;
 }
 
 .small {
-    flex-direction: row;
-    align-items: center;
-    padding: 3px 6px;
-    margin: 0 3px;
+    padding: 2px 7px;
+    min-height: 24px;
 }
 
 .normal:hover,
 .small:hover {
     background: var(--tool-hover);
-    border-color: var(--tool-border);
 }
 
 .normal:active,
@@ -41,7 +33,7 @@
 .checked {
     background: var(--tool-active);
     border-color: var(--tool-accent-border);
-    box-shadow: inset 0 -2px var(--tool-accent);
+    box-shadow: inset 3px 0 var(--tool-accent);
 }
 
 .normal:focus-visible,
@@ -59,32 +51,25 @@
 .largeButtonText,
 .smallButtonText {
     color: var(--foreground-color);
-    white-space: normal;
-    word-break: break-word;
-    overflow: visible;
+    white-space: nowrap;
     display: block;
     font-size: 12px;
     line-height: 16px;
-}
-
-.largeButtonText {
-    text-align: center;
-}
-
-.smallButtonText {
     text-align: left;
 }
 
 .icon {
-    width: 24px;
-    height: 24px;
-    margin-bottom: 4px;
+    width: 18px;
+    height: 18px;
     flex-shrink: 0;
 }
 
 .smallIcon {
     width: 16px;
     height: 16px;
-    margin-right: 6px;
     flex-shrink: 0;
+}
+
+.builtInIcon {
+    filter: var(--command-icon-filter);
 }

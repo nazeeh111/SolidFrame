@@ -9,6 +9,7 @@ export default {
     language: "pt-BR",
     translation: {
         ...en.translation,
+        "common.closeDocument": "Fechar documento",
         "ai.apiKey": "Chave de API",
         "ai.apiKeyHint":
             "A chave nunca é gravada no armazenamento do navegador. Salve-a com o gerenciador de senhas quando solicitado, ou digite-a uma vez por sessão.",

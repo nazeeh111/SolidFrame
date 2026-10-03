@@ -158,15 +158,45 @@ describe("RibbonGroupElement", () => {
         expect(el.className).toBe("rg-group");
 
         // The collection mock does not apply className — the content container is the
-        // first child appended by initHTML.
-        const content = el.children[0] as HTMLElement;
+        // second child appended by initHTML.
+        const content = el.children[1] as HTMLElement;
         expect(content).toBeInstanceOf(HTMLElement);
         expect(content.childElementCount).toBe(2);
 
-        const header = el.querySelector(".rg-header");
-        expect(header).not.toBeNull();
+        const header = mustQuery(el, ".rg-header");
 
-        expect(el.querySelector(".rg-arrow")).not.toBeNull();
+        const more = mustQuery(el, ".rg-arrow");
+        expect(more.getAttribute("aria-labelledby")).toBe(`${header.id} ${more.id}`);
+        expect(el.querySelector(`#${header.id}`)).toBe(header);
+    });
+
+    test("keeps ordinary commands and every stacked command in source order", () => {
+        CommandStore.registerCommand(TestCommand, { key: CMD_A, icon: "icon-a" });
+        CommandStore.registerCommand(TestCommand, { key: CMD_B, icon: "icon-b" });
+        const group = new RibbonGroup("group.test" as RibbonGroup["groupName"], [
+            CMD_A,
+            new ObservableCollection<CommandKeys>(CMD_A, CMD_B, CMD_A),
+            CMD_B,
+        ]);
+        const element = new RibbonGroupElement(group);
+        const content = element.children[1];
+        expect(content.children).toHaveLength(3);
+        expect(content.children[0]).toBeInstanceOf(RibbonPushButton);
+        expect(content.children[1]).toBeInstanceOf(RibbonStack);
+        expect(content.children[2]).toBeInstanceOf(RibbonPushButton);
+        expect(content.children[1].children).toHaveLength(3);
+        const calls: string[] = [];
+        const onCommand = (key: string) => calls.push(key);
+        PubSub.default.sub("executeCommand", onCommand);
+        try {
+            content.querySelectorAll<HTMLElement>("ribbon-button").forEach((command) => {
+                command.click();
+            });
+            expect(calls).toEqual([CMD_A, CMD_A, CMD_B, CMD_A, CMD_B]);
+        } finally {
+            PubSub.default.remove("executeCommand", onCommand);
+            element.dispose();
+        }
     });
 
     test("should not open collapsed dropdown when collapsedItems is empty", () => {

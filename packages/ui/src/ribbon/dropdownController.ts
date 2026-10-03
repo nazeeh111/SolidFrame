@@ -10,7 +10,9 @@ import {
     PubSub,
     type PushButton,
 } from "@chili3d/core";
-import { button, createIcon, div, label } from "@chili3d/element";
+import { button, div, label } from "@chili3d/element";
+
+import { createRibbonIcon } from "./ribbonIcon";
 
 export interface DropdownItemData {
     command: CommandKeys;
@@ -49,7 +51,7 @@ export function createDropdownItem(
     classes: DropdownItemClasses,
 ): HTMLElement {
     const data = getItemData(item);
-    const icon = data.icon ? createIcon(data.icon) : div();
+    const icon = data.icon ? createRibbonIcon(data.icon) : div();
     icon.classList.add(classes.icon);
     return button(
         {

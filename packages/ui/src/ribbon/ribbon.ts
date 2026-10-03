@@ -6,7 +6,6 @@ import {
     type CommandKeys,
     CommandStore,
     Config,
-    I18n,
     type IApplication,
     type ICommand,
     type IConverter,
@@ -19,10 +18,11 @@ import {
     type RibbonGroup,
     type RibbonTab,
 } from "@chili3d/core";
-import { a, button, collection, createIcon, div, img, span, svg } from "@chili3d/element";
+import { a, button, collection, div, img, span, svg } from "@chili3d/element";
 import style from "./ribbon.module.css";
 import { RibbonPushButton } from "./ribbonButton";
 import { RibbonGroupElement } from "./ribbonGroup";
+import { createRibbonIcon } from "./ribbonIcon";
 
 export const QuickButton = (command: ICommand) => {
     const data = CommandStore.getComandData(command);
@@ -31,15 +31,18 @@ export const QuickButton = (command: ICommand) => {
         return span({ textContent: "null" });
     }
 
-    const icon = createIcon(data.icon);
+    const labeled = data.key === "doc.save" || data.key === "doc.saveToFile";
+    const icon = createRibbonIcon(data.icon);
     icon.classList.add(style.icon);
     return button(
         {
             type: "button",
+            className: data.key === "doc.save" ? style.saveCommand : "",
             title: new Localize(`command.${data.key}`),
             onclick: () => PubSub.default.pub("executeCommand", data.key),
         },
         icon,
+        ...(labeled ? [span({ textContent: new Localize(`command.${data.key}`) })] : []),
     );
 };
 
@@ -83,7 +86,7 @@ export class RibbonUI extends HTMLElement {
     ) {
         super();
         this.className = style.root;
-        this.append(this.header(), this.ribbonTabs());
+        this.append(this.header(), this.workspaceBar(), this.ribbonTabs());
         this.addEventListener("keydown", (event) => {
             // Tab belongs to focused controls; the viewport uses it to cycle picked shapes.
             if (["Tab", "Enter", " "].includes(event.key)) {
@@ -100,31 +103,34 @@ export class RibbonUI extends HTMLElement {
     private leftPanel() {
         return div(
             { className: style.left },
-            div(
-                { className: style.appIcon, onclick: () => PubSub.default.pub("displayHome", true) },
+            button(
+                {
+                    type: "button",
+                    className: style.appIcon,
+                    title: "SolidFrame home",
+                    onclick: () => PubSub.default.pub("displayHome", true),
+                },
                 img({ className: style.icon, src: "favicon.svg", alt: "" }),
                 span({ id: "appName", textContent: "SolidFrame" }),
             ),
             div(
                 { className: style.ribbonTitlePanel },
-                svg({
-                    className: style.home,
-                    icon: "icon-home",
-                    onclick: () => PubSub.default.pub("displayHome", true),
-                }),
                 collection({
                     className: style.quickCommands,
                     sources: this.dataContent.quickCommands,
                     template: (command: CommandKeys) => QuickButton(command as any),
                 }),
-                span({ className: style.split }),
-                this.createRibbonHeader(),
             ),
         );
     }
 
+    private workspaceBar() {
+        return div({ className: style.workspaceBar }, this.createRibbonHeader());
+    }
+
     private createRibbonHeader() {
         return collection({
+            className: style.tabHeaders,
             sources: this.dataContent.tabs,
             template: (tab: RibbonTab) => {
                 const converter = new ActivedRibbonTabConverter(tab, style.tabHeader, style.activedTab);
@@ -155,12 +161,15 @@ export class RibbonUI extends HTMLElement {
                 sources: this.app.views,
                 template: (view) => this.createViewItem(view),
             }),
-            svg({
-                className: style.new,
-                icon: "icon-plus",
-                title: I18n.translate("command.doc.new"),
-                onclick: () => PubSub.default.pub("executeCommand", "doc.new"),
-            }),
+            button(
+                {
+                    type: "button",
+                    className: style.new,
+                    title: new Localize("command.doc.new"),
+                    onclick: () => PubSub.default.pub("executeCommand", "doc.new"),
+                },
+                svg({ icon: "icon-plus" }),
+            ),
         );
     }
 
@@ -172,19 +181,30 @@ export class RibbonUI extends HTMLElement {
                     "activeView",
                     new ViewActiveConverter(view, style.tab, style.active),
                 ),
-                onclick: () => {
-                    this.app.activeView = view;
-                },
             },
-            div({ className: style.name }, span({ textContent: new Binding(view.document, "name") })),
-            svg({
-                className: style.close,
-                icon: "icon-times",
-                onclick: (e) => {
-                    e.stopPropagation();
-                    view.close();
+            button(
+                {
+                    type: "button",
+                    className: style.name,
+                    title: new Binding(view.document, "name"),
+                    onclick: () => {
+                        this.app.activeView = view;
+                    },
                 },
-            }),
+                span({ textContent: new Binding(view.document, "name") }),
+            ),
+            button(
+                {
+                    type: "button",
+                    className: style.close,
+                    title: new Localize("common.closeDocument"),
+                    onclick: (e) => {
+                        e.stopPropagation();
+                        view.close();
+                    },
+                },
+                svg({ icon: "icon-times" }),
+            ),
         );
     }
 

@@ -216,6 +216,7 @@ export default {
         "common.back": "Back",
         "common.cancel": "Cancel",
         "common.clone": "Clone",
+        "common.closeDocument": "Close document",
         "common.color": "Color",
         "common.confirm": "Confirm",
         "common.count": "Count",

@@ -173,6 +173,7 @@ export default {
         "common.back": "Назад",
         "common.cancel": "Отмена",
         "common.clone": "Клон",
+        "common.closeDocument": "Закрыть документ",
         "common.color": "Цвет",
         "common.confirm": "Подтвердить",
         "common.count": "Количество",

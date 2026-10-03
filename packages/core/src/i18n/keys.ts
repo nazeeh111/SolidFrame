@@ -207,6 +207,7 @@ export const I18N_KEYS = [
     "common.back",
     "common.cancel",
     "common.clone",
+    "common.closeDocument",
     "common.color",
     "common.confirm",
     "common.count",

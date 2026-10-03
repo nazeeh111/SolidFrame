@@ -2,12 +2,15 @@
 // See LICENSE file in the project root for full license information.
 
 import { type ButtonSize, Localize, type SplitButton } from "@chili3d/core";
-import { button, createIcon, div, label } from "@chili3d/element";
+import { button, div, label, span } from "@chili3d/element";
 import { createDropdownItem, DropdownController, getItemData } from "./dropdownController";
 import buttonStyle from "./ribbonButton.module.css";
+import { createRibbonIcon } from "./ribbonIcon";
 import style from "./ribbonSplitButton.module.css";
 
 export class RibbonSplitButton extends HTMLElement {
+    static #nextId = 0;
+    readonly #labelId = `ribbon-split-${++RibbonSplitButton.#nextId}`;
     #primaryIndex = 0;
     #dropdown = new DropdownController(style.dropdown);
     #iconEl?: Element;
@@ -34,10 +37,11 @@ export class RibbonSplitButton extends HTMLElement {
 
         const { icon: iconName, display } = getItemData(this.data.items[0]);
 
-        this.#iconEl = createIcon(iconName);
+        this.#iconEl = createRibbonIcon(iconName);
         this.#iconEl.classList.add(isLarge ? buttonStyle.icon : buttonStyle.smallIcon);
 
         this.#textEl = label({
+            id: this.#labelId,
             className: isLarge ? style.text : style.smallText,
             textContent: new Localize(display),
         });
@@ -62,8 +66,14 @@ export class RibbonSplitButton extends HTMLElement {
                     }
                 },
             },
+            span({
+                id: `${this.#labelId}-more`,
+                className: style.menuLabel,
+                textContent: new Localize("common.more"),
+            }),
             div({ className: isLarge ? style.arrow : style.smallArrow }),
         );
+        this.#arrowEl.setAttribute("aria-labelledby", `${this.#labelId} ${this.#labelId}-more`);
         this.append(
             button(
                 {
@@ -121,7 +131,7 @@ export class RibbonSplitButton extends HTMLElement {
         const { icon: iconName, display } = getItemData(item);
 
         if (this.#iconEl) {
-            const newIcon = createIcon(iconName);
+            const newIcon = createRibbonIcon(iconName);
             newIcon.classList.add(this.size === "large" ? buttonStyle.icon : buttonStyle.smallIcon);
             this.#iconEl.replaceWith(newIcon);
             this.#iconEl = newIcon;
@@ -129,6 +139,7 @@ export class RibbonSplitButton extends HTMLElement {
 
         if (this.#textEl) {
             const newText = label({
+                id: this.#labelId,
                 className: this.size === "large" ? style.text : style.smallText,
                 textContent: new Localize(display),
             });

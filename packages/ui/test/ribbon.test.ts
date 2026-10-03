@@ -1,7 +1,7 @@
 // Part of the Chili3d Project, under the AGPL-3.0 License.
 // See LICENSE file in the project root for full license information.
 
-import type { CommandKeys, IApplication, PushButton, Ribbon } from "@chili3d/core";
+import type { CommandKeys, IApplication, IView, PushButton, Ribbon } from "@chili3d/core";
 import { CommandStore, PubSub, RibbonGroup, RibbonTab } from "@chili3d/core";
 import { afterEach, beforeEach, describe, expect, test } from "@rstest/core";
 
@@ -9,6 +9,7 @@ import { afterEach, beforeEach, describe, expect, test } from "@rstest/core";
 rs.mock("../src/ribbon/ribbon.module.css", () => ({
     root: "r-root",
     titleBar: "r-title-bar",
+    workspaceBar: "r-workspace-bar",
     left: "r-left",
     appIcon: "r-app-icon",
     icon: "r-icon",
@@ -134,7 +135,7 @@ describe("RibbonUI", () => {
         CommandStore.unregisterCommand(CMD_QUICK);
     });
 
-    function createRibbonUI() {
+    function createRibbonUI(views: IView[] = []) {
         const tab1 = makeTab("tab.one");
         const tab2 = makeTab("tab.two");
         const dataContent = {
@@ -142,9 +143,9 @@ describe("RibbonUI", () => {
             tabs: [tab1, tab2],
             activeTab: tab1,
         } as unknown as Ribbon;
-        const app = { views: [], mainWindow: undefined } as unknown as IApplication;
+        const app = { views, mainWindow: undefined } as unknown as IApplication;
         const ui = new RibbonUI(app, dataContent);
-        return { ui, dataContent, tab1, tab2 };
+        return { ui, app, dataContent, tab1, tab2 };
     }
 
     test("should render root, title bar and app name", () => {
@@ -154,6 +155,41 @@ describe("RibbonUI", () => {
 
         const appName = mustQuery(ui, "#appName");
         expect(appName.textContent).toContain("SolidFrame");
+    });
+
+    test("separates persistent document actions from workspace mode selection", () => {
+        const { ui, dataContent, tab1, tab2 } = createRibbonUI();
+        const documentRow = mustQuery(ui, ".r-title-bar");
+        const modeRow = mustQuery(ui, ".r-workspace-bar");
+        expect(ui.children[0]).toBe(documentRow);
+        expect(ui.children[1]).toBe(modeRow);
+        expect(documentRow.contains(modeRow)).toBe(false);
+        expect(modeRow.querySelectorAll("button")).toHaveLength(2);
+        const quick = mustQuery(documentRow, ".r-ribbon-title-panel button");
+        const mode = modeRow.querySelectorAll<HTMLButtonElement>("button")[1];
+        quick.click();
+        expect(dataContent.activeTab).toBe(tab1);
+        expect(published).toEqual([{ topic: "executeCommand", args: [CMD_QUICK] }]);
+        mode.click();
+        expect(dataContent.activeTab).toBe(tab2);
+        expect(published).toHaveLength(1);
+    });
+
+    test("document activation and close use separate native targets", () => {
+        const close = rs.fn();
+        const view = { document: { name: "Review fixture" }, close } as unknown as IView;
+        const { ui, app } = createRibbonUI([view]);
+        const activate = mustQuery(ui, ".r-name");
+        const closeButton = mustQuery(ui, ".r-close");
+        expect(activate).toBeInstanceOf(HTMLButtonElement);
+        expect(closeButton).toBeInstanceOf(HTMLButtonElement);
+        expect(activate.contains(closeButton)).toBe(false);
+        activate.click();
+        expect(app.activeView).toBe(view);
+        expect(close).not.toHaveBeenCalled();
+        closeButton.click();
+        expect(close).toHaveBeenCalledTimes(1);
+        expect(published).toHaveLength(0);
     });
 
     test("should render github link", () => {
@@ -178,18 +214,15 @@ describe("RibbonUI", () => {
     test("should publish executeCommand when quick command clicked", () => {
         const { ui } = createRibbonUI();
         const titlePanel = mustQuery(ui, ".r-ribbon-title-panel");
-        // children: home svg, quickCommands collection, split span, tab headers collection
-        const quickContainer = titlePanel.children[1] as HTMLElement;
-        const quickButton = mustQuery(quickContainer, "button");
+        const quickButton = mustQuery(titlePanel, "button");
         quickButton.click();
         expect(published.some((p) => p.topic === "executeCommand" && p.args[0] === CMD_QUICK)).toBe(true);
     });
 
     test("should switch activeTab when tab header clicked", () => {
         const { ui, dataContent, tab2 } = createRibbonUI();
-        const titlePanel = mustQuery(ui, ".r-ribbon-title-panel");
-        const tabHeaderContainer = titlePanel.children[3] as HTMLElement;
-        const tabLabels = tabHeaderContainer.querySelectorAll("button");
+        const workspace = mustQuery(ui, ".r-workspace-bar");
+        const tabLabels = workspace.querySelectorAll("button");
         expect(tabLabels.length).toBe(2);
 
         (tabLabels[1] as HTMLElement).click();
@@ -203,7 +236,7 @@ describe("RibbonUI", () => {
         const viewportKeys = rs.fn();
         parent.addEventListener("keydown", viewportKeys);
         const key = new KeyboardEvent("keydown", { key: "Tab", bubbles: true, cancelable: true });
-        mustQuery(mustQuery(ui, ".r-ribbon-title-panel").children[1], "button").dispatchEvent(key);
+        mustQuery(mustQuery(ui, ".r-ribbon-title-panel"), "button").dispatchEvent(key);
         expect(key.defaultPrevented).toBe(false);
         expect(viewportKeys).not.toHaveBeenCalled();
         parent.dispatchEvent(new KeyboardEvent("keydown", { key: "Tab", bubbles: true }));
@@ -212,11 +245,9 @@ describe("RibbonUI", () => {
 
     test("should publish doc.new when new-view button clicked", () => {
         const { ui } = createRibbonUI();
-        const newBtn = mustQuery(ui, "svg[icon='icon-plus']");
-        // The svg mock stores handlers on `_onclick` regardless of realEvents
-        const onclick = (newBtn as unknown as { _onclick?: () => void })._onclick;
-        expect(onclick).toBeDefined();
-        onclick!();
+        const newBtn = mustQuery(ui, ".r-new");
+        expect(newBtn).toBeInstanceOf(HTMLButtonElement);
+        newBtn.click();
         expect(published.some((p) => p.topic === "executeCommand" && p.args[0] === "doc.new")).toBe(true);
     });
 });

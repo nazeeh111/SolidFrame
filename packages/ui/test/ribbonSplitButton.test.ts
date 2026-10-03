@@ -94,6 +94,36 @@ describe("RibbonSplitButton", () => {
             expect(btn.childElementCount).toBe(0);
         });
 
+        test("keeps the menu name attached to the current primary command after a selection", () => {
+            const btn = new RibbonSplitButton(
+                makeSplitData([
+                    makePushButton(CMD_A, "icon-a", () => {}),
+                    makePushButton(CMD_B, "icon-b", () => {}),
+                ]),
+                "large",
+            );
+            document.body.appendChild(btn);
+            try {
+                const arrow = arrowButton(btn);
+                const labelIds = (arrow.getAttribute("aria-labelledby") ?? "").split(" ");
+                expect(labelIds).toHaveLength(2);
+                const oldLabel = btn.querySelector(`#${labelIds[0]}`);
+                expect(oldLabel).not.toBeNull();
+                arrow.click();
+                const items = document.body.querySelectorAll<HTMLElement>(".rsb-dropdown-item");
+                expect(items).toHaveLength(2);
+                items[1].click();
+                const newLabel = btn.querySelector(`#${labelIds[0]}`);
+                expect(newLabel).not.toBeNull();
+                expect(newLabel).not.toBe(oldLabel);
+                expect(btn.querySelector(`#${labelIds[1]}`)).not.toBeNull();
+                expect(arrow.getAttribute("aria-labelledby")).toBe(labelIds.join(" "));
+            } finally {
+                btn.dispose();
+                btn.remove();
+            }
+        });
+
         test("should render large split with main area and arrow button", () => {
             const btn = new RibbonSplitButton(
                 makeSplitData([makePushButton(CMD_A, "icon-a", () => {})]),
