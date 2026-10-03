@@ -211,6 +211,69 @@ describe("DropdownController", () => {
         });
     });
 
+    test("keyboard navigation stays in the menu and Escape restores its trigger", () => {
+        const anchor = document.createElement("button");
+        document.body.append(anchor);
+        const items = ["doc.save", "doc.saveToFile", "doc.open"].map((key) =>
+            createDropdownItem(key as CommandKeys, () => controller.close(), {
+                item: "item",
+                icon: "icon",
+                text: "text",
+            }),
+        );
+        controller.open(anchor, (menu) => menu.append(...items));
+        expect(document.activeElement).toBe(items[0]);
+        expect(anchor.getAttribute("aria-expanded")).toBe("true");
+        for (const [key, index] of [
+            ["ArrowUp", 2],
+            ["ArrowDown", 0],
+            ["End", 2],
+            ["Home", 0],
+        ] as const) {
+            const event = new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true });
+            document.activeElement?.dispatchEvent(event);
+            expect(event.defaultPrevented).toBe(true);
+            expect(document.activeElement).toBe(items[index]);
+        }
+        document.activeElement?.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+        expect(controller.isOpened).toBe(false);
+        expect(document.activeElement).toBe(anchor);
+        expect(anchor.getAttribute("aria-expanded")).toBe("false");
+        anchor.remove();
+    });
+
+    test("Tab dismisses without cancelling native focus traversal", () => {
+        const anchor = document.createElement("button");
+        document.body.append(anchor);
+        const item = createDropdownItem("doc.save", () => {}, { item: "item", icon: "icon", text: "text" });
+        controller.open(anchor, (menu) => menu.append(item));
+        const event = new KeyboardEvent("keydown", { key: "Tab", bubbles: true, cancelable: true });
+        item.dispatchEvent(event);
+        expect(event.defaultPrevented).toBe(false);
+        expect(controller.isOpened).toBe(false);
+        expect(document.activeElement).toBe(anchor);
+        anchor.remove();
+    });
+
+    test("a disabled or inert trigger cannot open a menu", () => {
+        const parent = document.createElement("div");
+        const anchor = document.createElement("button");
+        parent.append(anchor);
+        document.body.append(parent);
+        for (const [attribute, value] of [
+            ["aria-disabled", "true"],
+            ["inert", ""],
+        ]) {
+            parent.setAttribute(attribute, value);
+            controller.open(anchor, () => {
+                throw new Error("must not build disabled menu");
+            });
+            expect(controller.isOpened).toBe(false);
+            parent.removeAttribute(attribute);
+        }
+        parent.remove();
+    });
+
     describe("close", () => {
         test("should set isOpened to false", () => {
             const anchor = document.createElement("div");

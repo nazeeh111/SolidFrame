@@ -11,7 +11,7 @@
         width: 100%;
         align-items: center;
         justify-content: flex-start;
-        padding: 1px 9px;
+        padding: 4px 9px;
         box-sizing: border-box;
         position: relative;
 
@@ -29,6 +29,8 @@
             border-radius: 3px;
             margin-left: 2px;
             border: none;
+            background: transparent;
+            cursor: pointer;
 
             &::after {
                 content: "";
@@ -58,7 +60,7 @@
         align-items: stretch;
         justify-items: center;
         overflow: hidden;
-        padding: 2px 3px;
+        padding: 3px 5px;
     }
 }
 
@@ -117,4 +119,22 @@
     color: var(--foreground-color);
     font-size: 12px;
     white-space: nowrap;
+}
+
+.collapsedDropdownItem {
+    color: var(--foreground-color);
+    font: inherit;
+    text-align: left;
+    background: transparent;
+    border: 0;
+    width: 100%;
+    min-height: 32px;
+    cursor: pointer;
+}
+
+.arrow:focus-visible,
+.collapsedDropdownItem:focus-visible {
+    outline: 2px solid var(--tool-accent);
+    outline-offset: -2px;
+    background: var(--tool-hover);
 }

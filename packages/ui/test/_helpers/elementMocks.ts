@@ -40,6 +40,8 @@ function applyProps(el: HTMLElement, props: any, opts: ElementMockOptions): void
     if (!props || typeof props !== "object" || props instanceof Node) return;
     if (props.className) el.className = String(props.className);
     if (props.id) el.id = String(props.id);
+    if (props.role) el.setAttribute("role", String(props.role));
+    if (props.tabIndex !== undefined) el.tabIndex = Number(props.tabIndex);
     if (props.title) el.title = String(props.title);
     if (props.textContent !== undefined && typeof props.textContent !== "object") {
         el.textContent = String(props.textContent);

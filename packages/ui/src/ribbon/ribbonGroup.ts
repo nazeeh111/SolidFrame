@@ -10,7 +10,7 @@ import {
     type RibbonCommand,
     type RibbonGroup,
 } from "@chili3d/core";
-import { collection, div, label } from "@chili3d/element";
+import { button, collection, div, label } from "@chili3d/element";
 import { createDropdownItem, DropdownController } from "./dropdownController";
 import { RibbonPushButton } from "./ribbonButton";
 import style from "./ribbonGroup.module.css";
@@ -70,7 +70,11 @@ export class RibbonGroupElement extends HTMLElement {
             div(
                 { className: style.headerContainer },
                 label({ className: style.header, textContent: new Localize(this.group.groupName) }),
-                div({
+                button({
+                    type: "button",
+                    title: new Localize("common.more"),
+                    ariaHasPopup: "menu",
+                    ariaExpanded: "false",
                     className: style.arrow,
                     style: {
                         display: new Binding(
@@ -84,7 +88,7 @@ export class RibbonGroupElement extends HTMLElement {
                         if (this.#dropdown.isOpened) {
                             this.#dropdown.close();
                         } else {
-                            this.openDropdown((e.currentTarget as HTMLElement).parentElement as HTMLElement);
+                            this.openDropdown(e.currentTarget as HTMLElement);
                         }
                     },
                 }),

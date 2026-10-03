@@ -10,7 +10,7 @@ import {
     PubSub,
     type PushButton,
 } from "@chili3d/core";
-import { createIcon, div, label } from "@chili3d/element";
+import { button, createIcon, div, label } from "@chili3d/element";
 
 export interface DropdownItemData {
     command: CommandKeys;
@@ -51,8 +51,11 @@ export function createDropdownItem(
     const data = getItemData(item);
     const icon = data.icon ? createIcon(data.icon) : div();
     icon.classList.add(classes.icon);
-    return div(
+    return button(
         {
+            type: "button",
+            role: "menuitem",
+            tabIndex: -1,
             className: classes.item,
             onclick: (e) => {
                 e.stopPropagation();
@@ -79,6 +82,7 @@ export class DropdownController {
 
     #dropdown?: HTMLElement;
     #isOpened = false;
+    #anchor?: HTMLElement;
     readonly #containerClass: string;
 
     constructor(containerClass: string) {
@@ -90,25 +94,31 @@ export class DropdownController {
     }
 
     open(anchor: HTMLElement, buildItems: (dropdown: HTMLElement) => void): void {
-        if (this.#isOpened) return;
+        if (this.#isOpened || anchor.closest('[aria-disabled="true"], [inert]')) return;
 
         DropdownController.closeAll();
-        const dropdown = div({ className: this.#containerClass });
+        const dropdown = div({ className: this.#containerClass, role: "menu" });
         buildItems(dropdown);
 
         document.body.appendChild(dropdown);
         this.#position(dropdown, anchor);
         this.#dropdown = dropdown;
+        this.#anchor = anchor;
+        anchor.setAttribute("aria-expanded", "true");
         this.#isOpened = true;
         DropdownController.openedDropdowns.add(this);
 
         document.addEventListener("click", this.#onOutsideClick);
         document.addEventListener("keydown", this.#onKeyDown);
+        dropdown.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
     }
 
-    close(): void {
+    close(restoreFocus = false): void {
         if (!this.#isOpened) return;
 
+        this.#anchor?.setAttribute("aria-expanded", "false");
+        if (restoreFocus) this.#anchor?.focus();
+        this.#anchor = undefined;
         this.#dropdown?.remove();
         this.#dropdown = undefined;
         this.#isOpened = false;
@@ -125,8 +135,9 @@ export class DropdownController {
     #position(dropdown: HTMLElement, anchor: HTMLElement): void {
         const rect = anchor.getBoundingClientRect();
         dropdown.style.top = `${rect.bottom + 2}px`;
-        dropdown.style.left = `${rect.left}px`;
         dropdown.style.width = `${rect.width}px`;
+        const width = dropdown.getBoundingClientRect().width;
+        dropdown.style.left = `${Math.max(4, Math.min(rect.left, window.innerWidth - width - 4))}px`;
     }
 
     readonly #onOutsideClick = (e: Event) => {
@@ -137,7 +148,27 @@ export class DropdownController {
 
     readonly #onKeyDown = (e: KeyboardEvent) => {
         if (e.key === "Escape") {
-            this.close();
+            e.preventDefault();
+            e.stopPropagation();
+            this.close(true);
+            return;
         }
+        if (!this.#dropdown?.contains(e.target as Node)) return;
+        // Keep menu navigation separate from viewport selection and CAD shortcuts.
+        e.stopPropagation();
+        if (e.key === "Tab") {
+            this.close(true);
+            return;
+        }
+        const items = Array.from(this.#dropdown.querySelectorAll<HTMLElement>('[role="menuitem"]'));
+        const index = items.indexOf(document.activeElement as HTMLElement);
+        let next: number;
+        if (e.key === "ArrowDown") next = (index + 1) % items.length;
+        else if (e.key === "ArrowUp") next = (index - 1 + items.length) % items.length;
+        else if (e.key === "Home") next = 0;
+        else if (e.key === "End") next = items.length - 1;
+        else return;
+        e.preventDefault();
+        items[next]?.focus();
     };
 }

@@ -16,11 +16,17 @@ export class RibbonPulldownButton extends HTMLElement {
     ) {
         super();
         this.initHTML();
+        this.setAttribute("role", "button");
+        this.setAttribute("aria-haspopup", "menu");
+        this.setAttribute("aria-expanded", "false");
+        this.tabIndex = 0;
+        this.addEventListener("keydown", this.onKeyDown);
         this.addEventListener("click", this.toggleDropdown);
     }
 
     dispose(): void {
         this.#dropdown.dispose();
+        this.removeEventListener("keydown", this.onKeyDown);
         this.removeEventListener("click", this.toggleDropdown);
     }
 
@@ -46,6 +52,13 @@ export class RibbonPulldownButton extends HTMLElement {
         } else {
             this.openDropdown();
         }
+    };
+
+    private readonly onKeyDown = (e: KeyboardEvent) => {
+        if (e.key !== "Enter" && e.key !== " " && e.key !== "ArrowDown") return;
+        e.preventDefault();
+        e.stopPropagation();
+        if (!e.repeat) this.openDropdown();
     };
 
     private openDropdown() {

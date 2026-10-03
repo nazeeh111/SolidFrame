@@ -18,9 +18,8 @@ import {
     type Ribbon,
     type RibbonGroup,
     type RibbonTab,
-    type RibbonTabKeys,
 } from "@chili3d/core";
-import { a, collection, createIcon, div, img, label, span, svg } from "@chili3d/element";
+import { a, button, collection, createIcon, div, img, span, svg } from "@chili3d/element";
 import style from "./ribbon.module.css";
 import { RibbonPushButton } from "./ribbonButton";
 import { RibbonGroupElement } from "./ribbonGroup";
@@ -34,8 +33,9 @@ export const QuickButton = (command: ICommand) => {
 
     const icon = createIcon(data.icon);
     icon.classList.add(style.icon);
-    return span(
+    return button(
         {
+            type: "button",
             title: new Localize(`command.${data.key}`),
             onclick: () => PubSub.default.pub("executeCommand", data.key),
         },
@@ -76,6 +76,7 @@ class DisplayConverter<T> implements IConverter<T> {
 }
 
 export class RibbonUI extends HTMLElement {
+    #scrollObserver?: ResizeObserver;
     constructor(
         readonly app: IApplication,
         readonly dataContent: Ribbon,
@@ -83,6 +84,13 @@ export class RibbonUI extends HTMLElement {
         super();
         this.className = style.root;
         this.append(this.header(), this.ribbonTabs());
+        this.addEventListener("keydown", (event) => {
+            // Tab belongs to focused controls; the viewport uses it to cycle picked shapes.
+            if (["Tab", "Enter", " "].includes(event.key)) {
+                event.stopPropagation();
+                if (event.repeat && event.key !== "Tab") event.preventDefault();
+            }
+        });
     }
 
     private header() {
@@ -120,7 +128,8 @@ export class RibbonUI extends HTMLElement {
             sources: this.dataContent.tabs,
             template: (tab: RibbonTab) => {
                 const converter = new ActivedRibbonTabConverter(tab, style.tabHeader, style.activedTab);
-                return label({
+                return button({
+                    type: "button",
                     className: new Binding(this.dataContent, "activeTab", converter),
                     textContent: new Localize(tab.tabName),
                     style: {
@@ -194,11 +203,39 @@ export class RibbonUI extends HTMLElement {
     }
 
     private ribbonTabs() {
-        return collection({
+        const panel = collection({
             className: style.tabContentPanel,
             sources: this.dataContent.tabs,
             template: (tab: RibbonTab) => this.ribbonTab(tab),
         });
+        const back = button({
+            type: "button",
+            className: style.scrollButton,
+            title: "Scroll tools left",
+            ariaLabel: "Scroll tools left",
+            textContent: "‹",
+            onclick: () => panel.scrollBy({ left: -Math.max(160, panel.clientWidth * 0.75) }),
+        });
+        const next = button({
+            type: "button",
+            className: style.scrollButton,
+            title: "Scroll tools right",
+            ariaLabel: "Scroll tools right",
+            textContent: "›",
+            onclick: () => panel.scrollBy({ left: Math.max(160, panel.clientWidth * 0.75) }),
+        });
+        const update = () => {
+            back.disabled = panel.scrollLeft <= 1;
+            next.disabled = panel.scrollLeft + panel.clientWidth >= panel.scrollWidth - 1;
+        };
+        panel.addEventListener("focusin", (event) => {
+            const target = event.target as HTMLElement;
+            // Fully reveal a focused tool, including after a viewport resize.
+            queueMicrotask(() => target.scrollIntoView({ block: "nearest", inline: "nearest" }));
+        });
+        panel.addEventListener("scroll", update);
+        this.#scrollObserver = new ResizeObserver(update);
+        return div({ className: style.ribbonScroller }, back, panel, next);
     }
 
     private ribbonTab(tab: RibbonTab) {
@@ -218,10 +255,14 @@ export class RibbonUI extends HTMLElement {
     }
 
     connectedCallback(): void {
+        this.querySelectorAll(`.${style.tabContentPanel}, .${style.groupPanel}`).forEach((element) => {
+            this.#scrollObserver?.observe(element);
+        });
         Config.instance.onPropertyChanged(this.handleConfigChanged);
     }
 
     disconnectedCallback(): void {
+        this.#scrollObserver?.disconnect();
         Config.instance.removePropertyChanged(this.handleConfigChanged);
     }
 

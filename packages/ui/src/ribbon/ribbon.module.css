@@ -20,12 +20,14 @@
     padding: 0 8px;
     border-bottom: 1px solid var(--border-color);
     background: var(--titlebar-background-color);
+    overflow-x: auto;
 
     .left {
         display: flex;
         flex-direction: row;
         align-items: center;
         justify-self: center;
+        flex-shrink: 0;
 
         .appIcon {
             display: flex;
@@ -201,6 +203,9 @@
 
     .tabHeader {
         color: var(--titlebar-forground-color);
+        font: inherit;
+        background: transparent;
+        border: 1px solid transparent;
         padding: 5px 15px;
 
         &:hover {
@@ -230,6 +235,8 @@
     background-color: var(--panel-background-color);
     border-bottom: 1px solid var(--border-color);
     overflow-x: auto;
+    min-width: 0;
+    flex: 1;
     padding: 2px 0;
 
     &::-webkit-scrollbar {
@@ -279,4 +286,65 @@
         background: var(--tool-active);
         color: var(--tool-accent);
     }
+}
+
+.quickCommands > button {
+    color: var(--titlebar-forground-color);
+    font: inherit;
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+}
+
+.quickCommands > button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    padding: 0;
+}
+
+.quickCommands > button:hover {
+    background: var(--tool-hover);
+    border-color: var(--tool-border);
+}
+
+.quickCommands > button:focus-visible,
+.tabHeader:focus-visible {
+    outline: 2px solid var(--tool-accent);
+    outline-offset: -2px;
+}
+
+.ribbonScroller {
+    display: flex;
+    min-width: 0;
+    background: var(--panel-background-color);
+}
+
+.scrollButton {
+    flex: 0 0 26px;
+    padding: 0;
+    border: 0;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--panel-background-color);
+    color: var(--foreground-color);
+    font:
+        24px system-ui,
+        sans-serif;
+    cursor: pointer;
+}
+
+.scrollButton:hover:not(:disabled) {
+    background: var(--tool-hover);
+}
+
+.scrollButton:disabled {
+    color: var(--foreground-muted-color);
+    cursor: default;
+    opacity: 0.4;
+}
+
+.scrollButton:focus-visible {
+    outline: 2px solid var(--tool-accent);
+    outline-offset: -2px;
 }
