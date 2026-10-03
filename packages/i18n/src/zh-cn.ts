@@ -213,6 +213,7 @@ export default {
         "common.back": "返回",
         "common.cancel": "取消",
         "common.clone": "复制对象",
+        "common.closeDocument": "关闭文档",
         "common.color": "颜色",
         "common.confirm": "确定",
         "common.count": "数量",

@@ -17,8 +17,9 @@ import {
     Result,
     ShortcutProfiles,
 } from "@chili3d/core";
-import { createIcon, label } from "@chili3d/element";
+import { label } from "@chili3d/element";
 import style from "./ribbonButton.module.css";
+import { createRibbonIcon } from "./ribbonIcon";
 
 export class RibbonPushButton extends HTMLElement {
     #shortcut?: string;
@@ -73,7 +74,7 @@ export class RibbonPushButton extends HTMLElement {
     };
 
     private initHTML(display: I18nKeys, icon: CommandIcon, size: ButtonSize) {
-        const image = createIcon(icon);
+        const image = createRibbonIcon(icon);
         this.className = size === "large" ? style.normal : style.small;
         image.classList.add(size === "large" ? style.icon : style.smallIcon);
         const text = label({

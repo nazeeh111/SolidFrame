@@ -48,6 +48,7 @@ class DisplayConverter implements IConverter<number> {
 }
 
 export class RibbonGroupElement extends HTMLElement {
+    static #nextId = 0;
     #dropdown = new DropdownController(style.collapsedDropdown);
 
     constructor(readonly group: RibbonGroup) {
@@ -61,18 +62,19 @@ export class RibbonGroupElement extends HTMLElement {
     }
 
     private initHTML() {
+        const headingId = `ribbon-group-${++RibbonGroupElement.#nextId}`;
         this.append(
-            collection({
-                className: style.content,
-                sources: this.group.items,
-                template: (item) => createRibbonButton(item),
-            }),
             div(
                 { className: style.headerContainer },
-                label({ className: style.header, textContent: new Localize(this.group.groupName) }),
+                label({
+                    id: headingId,
+                    className: style.header,
+                    textContent: new Localize(this.group.groupName),
+                }),
                 button({
                     type: "button",
                     title: new Localize("common.more"),
+                    textContent: new Localize("common.more"),
                     ariaHasPopup: "menu",
                     ariaExpanded: "false",
                     className: style.arrow,
@@ -93,7 +95,16 @@ export class RibbonGroupElement extends HTMLElement {
                     },
                 }),
             ),
+            collection({
+                className: style.content,
+                sources: this.group.items,
+                template: (item) => createRibbonButton(item),
+            }),
         );
+        const more = this.querySelector("button");
+        if (!more) return;
+        more.id = `${headingId}-more`;
+        more.setAttribute("aria-labelledby", `${headingId} ${more.id}`);
     }
 
     private openDropdown(anchorEl: HTMLElement) {
