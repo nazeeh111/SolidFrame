@@ -47,6 +47,7 @@ export class Home extends HTMLElement {
             ),
             div({ className: style.navigationLabel, textContent: "WORKSPACE" }),
             this.action("New document", "icon-plus", "doc.new", true),
+            this.action(new Localize("command.fabrication.create"), "icon-box", "fabrication.create"),
             this.action("Open document", "icon-folder", "doc.open"),
             this.action("Open sample fixture", "icon-box", "doc.sample"),
             this.app.activeView?.document
@@ -83,9 +84,9 @@ export class Home extends HTMLElement {
     }
 
     private action(
-        text: string,
+        text: string | Localize,
         icon: string,
-        command: "doc.new" | "doc.open" | "doc.sample",
+        command: "doc.new" | "doc.open" | "doc.sample" | "fabrication.create",
         primary = false,
     ) {
         return button(

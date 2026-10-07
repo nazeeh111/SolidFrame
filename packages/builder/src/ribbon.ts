@@ -8,6 +8,10 @@ export const DefaultRibbon: RibbonTabProfile[] = [
         tabName: "ribbon.tab.model",
         groups: [
             {
+                groupName: "ribbon.group.fabrication",
+                items: ["fabrication.create", "fabrication.edit"],
+            },
+            {
                 groupName: "ribbon.group.draw",
                 items: [
                     "create.line",
