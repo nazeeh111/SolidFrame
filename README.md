@@ -2,9 +2,17 @@
 
 Browser CAD with editable solids, parametric sketches, and local project files.
 
-SolidFrame is a CAD application developed and maintained by **Nazeeh Abdul-Hadi**. It brings solid modeling, parametric sketches, feature history, geometry exchange, and local document storage into a focused browser workspace. Nazeeh’s work includes the project hub, editable workholding fixture, workspace styling, keyboard-accessible modeling controls, startup safeguards, and deployment improvements.
+SolidFrame is a CAD application developed and maintained by **Nazeeh Abdul-Hadi**. It brings solid modeling, parametric sketches, feature history, geometry exchange, and local document storage into a focused browser workspace. Nazeeh’s work includes an editable mechanical part builder, the project hub and workholding fixture, workspace styling, keyboard-accessible modeling controls, startup safeguards, and deployment improvements.
 
 [Open SolidFrame](https://nazeeh111.github.io/SolidFrame/) · [Source and license](LICENSE)
+
+## Design a drilled part
+
+The mechanical part builder creates a rectangular mounting plate or a sharp right-angle bracket from dimensions in millimetres. Set the stock dimensions and centered round through-hole grids; brackets have separate horizontal and vertical flange layouts. The editor checks the complete configuration before rebuilding the native solid, including hole spacing, edge clearance and the inside corner of a bracket.
+
+Edit the saved part through the dedicated part editor. Apply commits the configuration together, and undo/redo restores parameter changes. Invalid or cancelled edits keep the previous valid part. Native `.cd` documents retain the dimensions and hole layouts; STEP and STL exports contain geometry rather than the editable builder settings.
+
+This workflow models ideal geometry. It does not calculate sheet-metal bend allowance, thread or fastener standards, structural strength, or fabrication approval. See [mechanical parts](docs/mechanical-parts.md) for the controls, supported ranges and verification.
 
 ## Start with real geometry
 
@@ -47,6 +55,7 @@ The production site is in `dist/`. Serve it through HTTP, rather than opening it
 
 ## Project development
 
+- Original drilled-plate and right-angle-bracket builder with coupled hole-layout validation, atomic parameter editing and native-document persistence.
 - SolidFrame project hub, matching light/dark workspace palettes, original mark and fixture illustration, branded loading and recoverable startup errors.
 - A compact modeling ribbon with distinct command/menu targets, visible keyboard focus, and keyboard navigation through tool menus.
 - One-click native fixture with editable Box/Cylinder nodes, serialization support, and one undoable creation transaction.
