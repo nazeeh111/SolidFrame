@@ -34,3 +34,9 @@
     grid-gap: 10px;
     align-items: center;
 }
+
+@media (max-width: 680px) {
+    .panel {
+        padding-bottom: 58px;
+    }
+}
