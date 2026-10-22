@@ -145,8 +145,8 @@ chili3d-main-window {
 
 /* SolidFrame workspace palette. Both themes remain available in Preferences. */
 :root[theme="dark"] {
-    --primary-color: #c4744e;
-    --secondary-color: #c4b4a8;
+    --primary-color: #8ac6f0;
+    --secondary-color: #86a6c2;
     --foreground-color: #e6e8eb;
     --foreground-secondary-color: #afb4bc;
     --foreground-muted-color: #838993;
@@ -165,19 +165,19 @@ chili3d-main-window {
     --input-background-color: #1b1d21;
     --input-border-color: #41464f;
     --input-text-color: #e6e8eb;
-    --button-primary-background: #ac5e39;
-    --button-primary-hover: #ac5e39;
+    --button-primary-background: #156096;
+    --button-primary-hover: #1d71ad;
     --tool-background: #2b2e34;
     --tool-hover: #383c42;
-    --tool-active: #463a32;
-    --tool-accent: #e3a078;
-    --tool-accent-border: #9c6a4c;
+    --tool-active: #203951;
+    --tool-accent: #9ccaf0;
+    --tool-accent-border: #5b8db4;
     --tool-border: #454b54;
     --command-icon-filter: grayscale(1) brightness(1.6);
 }
 :root[theme="light"] {
-    --primary-color: #a54f2c;
-    --secondary-color: #a87a60;
+    --primary-color: #175b91;
+    --secondary-color: #527c9d;
     --foreground-color: #282b31;
     --foreground-secondary-color: #60656e;
     --background-color: #eceef1;
@@ -187,13 +187,13 @@ chili3d-main-window {
     --titlebar-background-color: #e3e6eb;
     --statusbar-background-color: #e3e6eb;
     --viewport-background-color: #c8ccd2;
-    --button-primary-background: #a54f2c;
-    --button-primary-hover: #884021;
+    --button-primary-background: #175b91;
+    --button-primary-hover: #0f4877;
     --tool-background: #e9ecf0;
     --tool-hover: #dce1e8;
-    --tool-active: #f0dfd2;
-    --tool-accent: #90451f;
-    --tool-accent-border: #ad7351;
+    --tool-active: #dceaf7;
+    --tool-accent: #175b91;
+    --tool-accent-border: #5c8daf;
     --tool-border: #c5cbd3;
-    --command-icon-filter: grayscale(1) contrast(1.15);
+    --command-icon-filter: grayscale(1) brightness(0.55) contrast(1.2);
 }

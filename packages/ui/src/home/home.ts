@@ -137,12 +137,12 @@ export class Home extends HTMLElement {
                         div({ className: style.eyebrow, textContent: "SKETCHES AND SOLIDS" }),
                         div({
                             className: style.welcome,
-                            textContent: "Sketch and model\nin 3D.",
+                            textContent: "Build solids\nyou can edit.",
                         }),
                         div({
                             className: style.subtitle,
                             textContent:
-                                "Create constrained sketches, edit solid dimensions, and export STEP, IGES, or STL files.",
+                                "Start with a fixture or make a plate or bracket. Revise dimensions, add sketches, and export STEP, IGES, or STL.",
                         }),
                         div(
                             { className: style.heroActions },
