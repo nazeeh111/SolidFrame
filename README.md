@@ -6,6 +6,10 @@ SolidFrame is a CAD application developed and maintained by **Nazeeh Abdul-Hadi*
 
 [Open SolidFrame](https://nazeeh111.github.io/SolidFrame/) · [Source and license](LICENSE)
 
+[![SolidFrame modeling workspace with the seven-part fixture, selected base plate, editable 85 mm width, and rebuilt solid](docs/images/editable-fixture.jpg)](docs/images/editable-fixture.jpg)
+
+*The live editable sample after changing the base plate width from 70 to 85 mm. Select a part in the tree, edit a dimension in Properties, and use Fit Content to frame the result. [Open the sample](https://nazeeh111.github.io/SolidFrame/) with **Open editable sample**.*
+
 ## Design a drilled part
 
 The mechanical part builder creates a rectangular mounting plate or a sharp right-angle bracket from dimensions in millimetres. Set the stock dimensions and centered round through-hole grids; brackets have separate horizontal and vertical flange layouts. The editor checks the complete configuration before rebuilding the native solid, including hole spacing, edge clearance and the inside corner of a bracket.
