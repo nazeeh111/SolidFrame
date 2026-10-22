@@ -17,6 +17,7 @@
     & .sidebar {
         display: flex;
         flex-direction: column;
+        width: var(--sidebar-width);
         min-width: 150px;
         max-width: 85%;
         background-color: var(--background-color);
@@ -95,6 +96,10 @@
     flex-direction: column;
 }
 
+.mobileSidebarToggle {
+    display: none;
+}
+
 @media (max-width: 680px) {
     .content {
         flex-direction: column-reverse;
@@ -111,6 +116,16 @@
             display: none;
             flex: 1 1 auto;
             width: 100%;
+            max-width: none;
+            position: absolute;
+            inset: 0;
+            z-index: 1001;
+            padding-top: 48px;
+            overflow: hidden;
+
+            &.sidebarOpen {
+                display: flex;
+            }
         }
 
         & .rightPanel {
@@ -126,5 +141,17 @@
 
     .chatResizer {
         display: none;
+    }
+
+    .mobileSidebarToggle {
+        display: block;
+        position: absolute;
+        z-index: 1002;
+        bottom: 14px;
+        left: 12px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        background: var(--panel-background-color);
+        cursor: pointer;
     }
 }

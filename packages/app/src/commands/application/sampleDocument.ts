@@ -59,6 +59,13 @@ export class SampleDocument implements ICommand {
             throw error;
         }
         document.visual.update();
-        app.activeView?.cameraController.fitContent();
+        const view = app.activeView;
+        if (view) {
+            // A newly attached viewport may not have received its first resize event yet.
+            // Fit against its actual aspect ratio, especially on tall phone screens.
+            if (view.width > 0 && view.height > 0) view.resize(view.width, view.height);
+            view.cameraController.fitContent();
+            view.update();
+        }
     }
 }

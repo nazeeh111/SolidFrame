@@ -26,6 +26,8 @@ Choose **Open editable sample** on the home screen. The workholding fixture cont
 
 The fixture's parts have independent dimensions; changing one part does not automatically constrain the others. The full sketch-constraint system remains available for your own parametric models.
 
+On narrow screens, **Items / Properties** opens the model tree and editable dimensions. Use **Fit Content** to frame the model after rotating or resizing the view. Larger screens leave the panels visible beside the workspace.
+
 ## Run locally
 
 Requires Node.js 22 or later and npm. The included WebAssembly binaries mean a C++ toolchain is not needed for the standard app build.

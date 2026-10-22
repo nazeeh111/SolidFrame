@@ -2,6 +2,31 @@
     position: relative;
 }
 
+.mobileFitButton {
+    display: none;
+}
+
+@media (max-width: 680px) {
+    .mobileFitButton {
+        position: absolute;
+        z-index: 30;
+        right: 12px;
+        bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        background: var(--panel-background-color);
+        cursor: pointer;
+    }
+
+    .mobileFitButton svg {
+        width: 18px;
+        height: 18px;
+    }
+}
+
 .actsContainer {
     position: absolute;
     bottom: 12px;

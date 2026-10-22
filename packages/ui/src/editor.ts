@@ -6,11 +6,12 @@ import {
     type IApplication,
     type ICommand,
     type IDocument,
+    Localize,
     type Material,
     PubSub,
     type Ribbon,
 } from "@chili3d/core";
-import { div } from "@chili3d/element";
+import { button, div, span } from "@chili3d/element";
 import style from "./editor.module.css";
 import { FloatPanel } from "./floatPanel";
 import { ProjectView } from "./project";
@@ -34,6 +35,7 @@ export class Editor extends HTMLElement {
     private _chatWidth: number = 320;
     private _isResizingSidebar: boolean = false;
     private _sidebarEl: HTMLDivElement | null = null;
+    private _mobileSidebarToggle: HTMLButtonElement | null = null;
 
     constructor(
         readonly app: IApplication,
@@ -50,7 +52,7 @@ export class Editor extends HTMLElement {
         this._sidebarEl = div(
             {
                 className: style.sidebar,
-                style: `width: ${this._sidebarWidth}px;`,
+                style: `--sidebar-width: ${this._sidebarWidth}px;`,
             },
             new ProjectView({ className: style.sidebarItem }),
             new PropertyView({ className: style.sidebarItem }),
@@ -59,7 +61,26 @@ export class Editor extends HTMLElement {
                 onpointerdown: (e: PointerEvent) => this._startSidebarResize(e),
             }),
         );
-        this._contentEl = div({ className: style.content }, this._sidebarEl, this._viewportContainer);
+        this._sidebarEl.id = "solidframe-model-panels";
+        this._sidebarEl.tabIndex = -1;
+        this._mobileSidebarToggle = button(
+            {
+                className: style.mobileSidebarToggle,
+                type: "button",
+                onclick: () => this.setMobileSidebarOpen(!this._mobileSidebarOpen),
+            },
+            span({ textContent: new Localize("items.header") }),
+            " / ",
+            span({ textContent: new Localize("properties.header") }),
+        );
+        this._mobileSidebarToggle.setAttribute("aria-controls", this._sidebarEl.id);
+        this._mobileSidebarToggle.setAttribute("aria-expanded", "false");
+        this._contentEl = div(
+            { className: style.content },
+            this._sidebarEl,
+            this._viewportContainer,
+            this._mobileSidebarToggle,
+        );
         this.append(
             div(
                 { className: style.root },
@@ -70,6 +91,24 @@ export class Editor extends HTMLElement {
         );
         this.app.mainWindow?.appendChild(this);
     }
+
+    private _mobileSidebarOpen = false;
+
+    private setMobileSidebarOpen(open: boolean) {
+        this._mobileSidebarOpen = open;
+        this._sidebarEl?.classList.toggle(style.sidebarOpen, open);
+        this._mobileSidebarToggle?.setAttribute("aria-expanded", String(open));
+        if (open) this._sidebarEl?.focus();
+    }
+
+    private readonly closeMobileSidebarOnEscape = (event: KeyboardEvent) => {
+        if (event.key === "Escape" && this._mobileSidebarOpen) {
+            event.preventDefault();
+            event.stopPropagation();
+            this.setMobileSidebarOpen(false);
+            this._mobileSidebarToggle?.focus();
+        }
+    };
 
     private ensureChatPanel(): ChatPanel {
         if (this.chatPanel) return this.chatPanel;
@@ -204,7 +243,7 @@ export class Editor extends HTMLElement {
                 const maxWidth = Math.floor(window.innerWidth * 0.85);
                 newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
                 this._sidebarWidth = newWidth;
-                this._sidebarEl.style.width = `${newWidth}px`;
+                this._sidebarEl.style.setProperty("--sidebar-width", `${newWidth}px`);
             },
             () => {
                 this._isResizingSidebar = false;
@@ -214,6 +253,7 @@ export class Editor extends HTMLElement {
     }
 
     connectedCallback(): void {
+        this.addEventListener("keydown", this.closeMobileSidebarOnEscape, true);
         PubSub.default.sub("editMaterial", this._handleMaterialEdit);
         PubSub.default.sub("editVariables", this._handleVariablesEdit);
         PubSub.default.sub("openCommandContext", this.openContext);
@@ -222,6 +262,7 @@ export class Editor extends HTMLElement {
     }
 
     disconnectedCallback(): void {
+        this.removeEventListener("keydown", this.closeMobileSidebarOnEscape, true);
         PubSub.default.remove("editMaterial", this._handleMaterialEdit);
         PubSub.default.remove("editVariables", this._handleVariablesEdit);
         PubSub.default.remove("openCommandContext", this.openContext);

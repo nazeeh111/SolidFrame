@@ -16,7 +16,7 @@ import {
     ViewModeI18nKeys,
     ViewModes,
 } from "@chili3d/core";
-import { collection, div, input, label, span, svg } from "@chili3d/element";
+import { button, collection, div, input, label, span, svg } from "@chili3d/element";
 import { Flyout } from "./flyout";
 import style from "./viewport.module.css";
 
@@ -82,6 +82,20 @@ export class Viewport extends HTMLElement {
                   )
                 : "",
             this.createViewModeControl(),
+            button(
+                {
+                    className: style.mobileFitButton,
+                    type: "button",
+                    onpointerdown: (event) => event.stopPropagation(),
+                    onclick: (event) => {
+                        event.stopPropagation();
+                        this.view.cameraController.fitContent();
+                        this.view.update();
+                    },
+                },
+                svg({ icon: "icon-fitcontent" }),
+                span({ textContent: new Localize("viewport.fitContent") }),
+            ),
         );
     }
 
