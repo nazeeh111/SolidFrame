@@ -226,7 +226,7 @@ describe("History", () => {
     test("NodeLinkedListHistoryRecord undo 'remove' action", () => {
         let addCalled = false;
         const mockParent = {
-            add(_node: unknown) {
+            insertAfter(_previous: unknown, _node: unknown) {
                 addCalled = true;
             },
         };
@@ -241,7 +241,7 @@ describe("History", () => {
     test("NodeLinkedListHistoryRecord undo 'transfer' action", () => {
         let addCalled = false;
         const mockOldParent = {
-            add(_node: unknown) {
+            insertAfter(_previous: unknown, _node: unknown) {
                 addCalled = true;
             },
         };

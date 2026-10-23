@@ -91,6 +91,12 @@ export class Transaction {
         const transaction = Transaction._transactionMap.get(this.document);
         Transaction._transactionMap.delete(this.document);
 
-        transaction?.undo();
+        const previousDisabled = this.document.history.disabled;
+        this.document.history.disabled = true;
+        try {
+            transaction?.undo();
+        } finally {
+            this.document.history.disabled = previousDisabled;
+        }
     }
 }

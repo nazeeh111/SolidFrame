@@ -27,10 +27,16 @@ export class BoundingBox {
     static readonly zero = new BoundingBox(new XYZ({ x: 0, y: 0, z: 0 }), new XYZ({ x: 0, y: 0, z: 0 }));
 
     static transformed(box: BoundingBox, matrix: Matrix4) {
-        const min = matrix.ofPoint(box.min);
-        const max = matrix.ofPoint(box.max);
-
-        return new BoundingBox(min, max);
+        const corners: XYZ[] = [];
+        for (const x of [box.min.x, box.max.x]) {
+            for (const y of [box.min.y, box.max.y]) {
+                for (const z of [box.min.z, box.max.z]) {
+                    corners.push(matrix.ofPoint({ x, y, z }));
+                }
+            }
+        }
+        const bounds = BoundingBox.fromPoints(corners);
+        return new BoundingBox(new XYZ(bounds.min), new XYZ(bounds.max));
     }
 
     static center(box: BoundingBox | undefined) {

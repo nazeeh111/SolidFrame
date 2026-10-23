@@ -61,7 +61,7 @@ export function createDropdownItem(
             className: classes.item,
             onclick: (e) => {
                 e.stopPropagation();
-                PubSub.default.pub("executeCommand", data.command);
+                data.onClick();
                 onSelect();
             },
         },

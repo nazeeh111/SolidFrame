@@ -1,7 +1,15 @@
 // Part of the Chili3d Project, under the AGPL-3.0 License.
 // See LICENSE file in the project root for full license information.
 
-import { download, I18n, type IApplication, type IDocument, type INode, VisualNode } from "@chili3d/core";
+import {
+    download,
+    FolderNode,
+    I18n,
+    type IApplication,
+    type IDocument,
+    type INode,
+    VisualNode,
+} from "@chili3d/core";
 import type { Tool } from "../llm/types";
 
 function getDocument(): IDocument | undefined {
@@ -17,6 +25,20 @@ function resolveNodes(doc: IDocument, ids: unknown): INode[] | string {
     const missing = ids.filter((_, i) => !nodes[i]);
     if (missing.length) return `nodes not found: ${missing.join(", ")}`;
     return nodes;
+}
+
+/** Expand organizing folders once, stopping at visual bodies so their consumed tools stay internal. */
+function exportableNodes(nodes: INode[]): VisualNode[] {
+    const seen = new Set<INode>();
+    const visuals: VisualNode[] = [];
+    const visit = (node: INode): void => {
+        if (seen.has(node)) return;
+        seen.add(node);
+        if (node instanceof FolderNode) node.children().forEach(visit);
+        else if (node instanceof VisualNode) visuals.push(node);
+    };
+    nodes.forEach(visit);
+    return visuals;
 }
 
 function validateFormat(app: IApplication, format: string): string | undefined {
@@ -43,7 +65,7 @@ async function handleExportNodes(args: Record<string, unknown>): Promise<string>
 
     const nodes = resolveNodes(doc, args["ids"]);
     if (typeof nodes === "string") return JSON.stringify({ error: nodes });
-    const visuals = nodes.filter((n): n is VisualNode => n instanceof VisualNode);
+    const visuals = exportableNodes(nodes);
     if (visuals.length === 0) return JSON.stringify({ error: "no exportable nodes" });
 
     const data = await app.dataExchange.export(format, visuals);

@@ -95,13 +95,13 @@ export class LineSegment {
 
         if (D < Precision.Float) {
             // the lines are almost parallel
-            return this.calculateParallelSegments(a, c, d, e);
+            return this.calculateParallelSegments(a, b, c, d, e);
         } else {
             return this.calculateNonParallelSegments(D, a, b, c, d, e);
         }
     }
 
-    private calculateParallelSegments(a: number, c: number, d: number, e: number) {
+    private calculateParallelSegments(a: number, b: number, c: number, d: number, e: number) {
         // Force using point P0 on segment S1
         // to prevent possible division by 0.0 later
         const sN = 0.0;
@@ -109,7 +109,7 @@ export class LineSegment {
         const tN = e;
         const tD = c;
 
-        return this.checkParameterConstraints(tN, tD, sN, sD, -d, a);
+        return this.checkParameterConstraints(tN, tD, sN, sD, -d, a, b);
     }
 
     private calculateNonParallelSegments(D: number, a: number, b: number, c: number, d: number, e: number) {

@@ -1336,6 +1336,37 @@ describe("capabilityEngine", () => {
                 }
             });
 
+            test("a failed program restores an existing ref that it overwrote", async () => {
+                const original = { shapeType: ShapeTypes.solid, volume: () => 17 };
+                const replacement = { shapeType: ShapeTypes.solid, volume: () => 99 };
+                const box = rs
+                    .fn(() => Result.ok(replacement as unknown as IShape))
+                    .mockReturnValueOnce(Result.ok(original as unknown as IShape));
+                setup({ box });
+                try {
+                    const tool = buildCapabilityTools()[0];
+                    await tool.handler({
+                        ops: [{ id: "b", method: "box", args: { dx: 1, dy: 1, dz: 1 } }],
+                    });
+                    await expect(
+                        tool.handler({
+                            ops: [
+                                { id: "b", method: "box", args: { dx: 2, dy: 2, dz: 2 } },
+                                { method: "transformedMul", args: {} },
+                            ],
+                        }),
+                    ).rejects.toThrow("transformedMul requires args.shape");
+                    const result = JSON.parse(
+                        (await tool.handler({
+                            ops: [{ id: "v", method: "shape.volume", target: "b" }],
+                        })) as string,
+                    );
+                    expect(result.results.v).toBe(17);
+                } finally {
+                    rs.unstubAllGlobals();
+                }
+            });
+
             test("a failed program drops the refs it registered", async () => {
                 const edge = { shapeType: ShapeTypes.edge, curve: { curveType: "line", length: () => 1 } };
                 const line = rs.fn(() => Result.ok(edge as unknown as IShape));

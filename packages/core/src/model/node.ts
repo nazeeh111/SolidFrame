@@ -2,7 +2,7 @@
 // See LICENSE file in the project root for full license information.
 
 import type { IDocument } from "../document";
-import { HistoryObservable, type IDisposable, Id, type IPropertyChanged } from "../foundation";
+import { HistoryObservable, type IDisposable, Id, type IPropertyChanged, Logger } from "../foundation";
 import { property } from "../property";
 import { type Serialized, Serializer, serialize } from "../serialize";
 
@@ -329,19 +329,34 @@ export class NodeUtils {
 
     public static async deserializeNode(document: IDocument, nodes: Serialized[]) {
         const nodeMap: Map<string, INodeLinkedList> = new Map();
-        nodes.forEach((n) => {
-            const node = Serializer.deserializeObject(document, n);
-            if (NodeUtils.isLinkedListNode(node)) {
-                nodeMap.set(n["id"], node);
+        const restored: INode[] = [];
+        try {
+            nodes.forEach((n) => {
+                const node = Serializer.deserializeObject(document, n);
+                restored.push(node);
+                if (NodeUtils.isLinkedListNode(node)) {
+                    nodeMap.set(n["id"], node);
+                }
+                const parentId = (n as any)["parentId"];
+                if (!parentId) return;
+                if (nodeMap.has(parentId)) {
+                    nodeMap.get(parentId)!.add(node);
+                } else {
+                    console.warn(`parent not found: ${parentId}`);
+                }
+            });
+            return Promise.resolve(nodeMap.get(nodes[0]["id"]));
+        } catch (error) {
+            // This candidate tree is not yet owned by ModelManager. Node disposal is
+            // idempotent, so revisiting children after their parent is safe.
+            for (const node of restored) {
+                try {
+                    node.dispose();
+                } catch (cleanupError) {
+                    Logger.error("Failed to dispose a partially restored node", cleanupError);
+                }
             }
-            const parentId = (n as any)["parentId"];
-            if (!parentId) return;
-            if (nodeMap.has(parentId)) {
-                nodeMap.get(parentId)!.add(node);
-            } else {
-                console.warn(`parent not found: ${parentId}`);
-            }
-        });
-        return Promise.resolve(nodeMap.get(nodes[0]["id"]));
+            throw error;
+        }
     }
 }

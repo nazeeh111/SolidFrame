@@ -160,16 +160,14 @@ export class NodeLinkedListHistoryRecord implements IHistoryRecord {
         return previous?.parent === parent ? previous : undefined;
     }
 
-    private handleUndo(record: NodeRecord): void {
+    private handleUndo(record: NodeRecord, pending: Map<INode, NodeRecord>): void {
         switch (record.action) {
             case "add":
                 record.newParent?.remove(record.node);
                 break;
             case "remove":
-                record.oldParent?.add(record.node);
-                break;
             case "transfer":
-                record.oldParent?.add(record.node);
+                this.restoreDetached(record, pending);
                 break;
             case "move":
                 record.newParent?.move(
@@ -184,6 +182,25 @@ export class NodeLinkedListHistoryRecord implements IHistoryRecord {
             case "insertBefore":
                 record.newParent?.remove(record.node);
                 break;
+        }
+    }
+
+    private restoreDetached(record: NodeRecord, pending: Map<INode, NodeRecord>): void {
+        const chain: NodeRecord[] = [];
+        let current: NodeRecord | undefined = record;
+        // A batch's preceding siblings may also be detached. Restore those first,
+        // independently of input order and without recursion for large batches.
+        while (current && pending.delete(current.node)) {
+            chain.push(current);
+            const previous: NodeRecord | undefined = current.oldPrevious && pending.get(current.oldPrevious);
+            current = previous && previous.oldParent === current.oldParent ? previous : undefined;
+        }
+        for (let i = chain.length - 1; i >= 0; i--) {
+            const item = chain[i];
+            item.oldParent?.insertAfter(
+                NodeLinkedListHistoryRecord.normalizePrevious(item.oldPrevious, item.oldParent),
+                item.node,
+            );
         }
     }
 
@@ -215,8 +232,13 @@ export class NodeLinkedListHistoryRecord implements IHistoryRecord {
     }
 
     undo(): void {
+        const pending = new Map<INode, NodeRecord>(
+            this.records
+                .filter((record) => record.action === "remove" || record.action === "transfer")
+                .map((record) => [record.node, record] as const),
+        );
         for (let i = this.records.length - 1; i >= 0; i--) {
-            this.handleUndo(this.records[i]);
+            this.handleUndo(this.records[i], pending);
         }
     }
 

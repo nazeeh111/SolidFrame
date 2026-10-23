@@ -257,9 +257,10 @@ describe("RibbonSplitButton", () => {
                 expect(icon).not.toBeNull();
                 expect(icon!.getAttribute("icon")).toBe("icon-b");
 
-                // main area now executes item B
-                mainArea(btn).click();
                 expect(onClickB).toHaveBeenCalledTimes(1);
+                // The menu already executed B; the primary button repeats that action.
+                mainArea(btn).click();
+                expect(onClickB).toHaveBeenCalledTimes(2);
                 expect(onClickA).not.toHaveBeenCalled();
             } finally {
                 btn.dispose();

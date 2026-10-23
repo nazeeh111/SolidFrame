@@ -872,18 +872,12 @@ function restoreRefRegistries(
     refSnapshot: Map<string, LocalRef>,
     nullSnapshot: Set<string>,
 ): void {
-    for (const key of [...localRefs.keys()]) {
-        if (!refSnapshot.has(key)) localRefs.delete(key);
-    }
-    for (const [key, entry] of refSnapshot) {
-        if (!localRefs.has(key)) localRefs.set(key, entry);
-    }
-    for (const key of [...nullRefs]) {
-        if (!nullSnapshot.has(key)) nullRefs.delete(key);
-    }
-    for (const key of nullSnapshot) {
-        if (!localRefs.has(key)) nullRefs.add(key);
-    }
+    // Restore values as well as keys: a failed op may have reused an existing id.
+    // Clearing first also restores insertion order, which determines ref eviction.
+    localRefs.clear();
+    for (const [key, entry] of refSnapshot) localRefs.set(key, entry);
+    nullRefs.clear();
+    for (const key of nullSnapshot) nullRefs.add(key);
 }
 
 /**

@@ -33,7 +33,7 @@ web ──> builder ──> app ──> core
 - **`ui`** — App chrome: main window, ribbon, property panels, project tree, dialogs, toast, status bar
 - **`app`** — `Application`, body nodes (`bodys/`), command implementations, `CommandService`, `HotkeyService`
 - **`builder`** — `AppBuilder` fluent chain (`.useIndexedDB().useWasmOcc().useParametric().useThree().useUI().build()`), default ribbon layout; `mergeRibbonProfiles` merges module contributions (`SketchRibbonProfiles` from `@chili3d/parametric`, `ParametricRibbonProfiles`) into `DefaultRibbon`
-- **`i18n`** / **`storage`** / **`web`** — Locale data (en, zh-cn, pt-br) / IndexedDB persistence / entry point (loading screen, `?plugin=`/`?url=`/`?model=` params)
+- **`i18n`** / **`storage`** / **`web`** — Locale data (en, zh-cn, pt-br) / IndexedDB persistence / entry point (loading screen; `?url=`/`?model=` model links; `?plugin=` is ignored with a notice)
 
 Import via workspace names (`import { ... } from "@chili3d/core"`); one root `tsconfig.json` covers all packages.
 
@@ -50,7 +50,7 @@ OCCT v8.0.0 → `chili-wasm.wasm` via Emscripten. `cpp/src/`: `factory.cpp` (sha
 - **Body nodes** — `app/src/bodys/`; extend `ParameterShapeNode`, implement `generateShape(): Result<IShape>`, `setPropertyEmitShapeChanged()` triggers re-evaluation.
 - **Commands** — `ICommand.execute(application): Promise<void>`; `CancelableCommand` adds `cancel()`, `AsyncController`, dispose stack.
 - **Undo/redo** — `Transaction` records snapshots, `History` keeps the stack; commands create transactions automatically.
-- **Plugins** — Loaded from URLs or `?plugin=`; manager in `core/src/plugin/` + `app/src/pluginManager.ts`; examples in `plugins/`.
+- **Plugins** — Bundled plugins load during setup; explicit imports can load trusted files/URLs. Startup `?plugin=` values never authorize execution; manager in `core/src/plugin/` + `app/src/pluginManager.ts`; examples in `plugins/`.
 - **Global singleton** — `getCurrentApplication()` (from `core`) instead of DI threading.
 - **MCP server** — a separate package (`chili3d-mcp`, moved out of this repo): its `live_*` tools drive the user's open browser tab, and headless tools (`run_cad_program`, `render_preview`, …) are a server-side scratchpad. Units: millimetres; angles: degrees.
 

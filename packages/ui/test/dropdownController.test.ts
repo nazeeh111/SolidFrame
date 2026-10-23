@@ -109,6 +109,23 @@ describe("createDropdownItem", () => {
         expect(text).not.toBeNull();
     });
 
+    test("custom dropdown actions run their callback without dispatching another command", () => {
+        const calls: string[] = [];
+        const onCommand = (command: string) => calls.push(`command:${command}`);
+        PubSub.default.sub("executeCommand", onCommand);
+        try {
+            const item = createDropdownItem(
+                makePushButton({ command: "doc.save", onClick: () => calls.push("custom") }),
+                () => calls.push("select"),
+                classes,
+            );
+            item.click();
+            expect(calls).toEqual(["custom", "select"]);
+        } finally {
+            PubSub.default.remove("executeCommand", onCommand);
+        }
+    });
+
     test("should publish executeCommand and call onSelect when clicked", () => {
         const calls: string[] = [];
         const callback = (cmd: string) => calls.push(`cmd:${cmd}`);

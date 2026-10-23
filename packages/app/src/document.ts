@@ -144,17 +144,29 @@ export class Document extends Observable implements IDocument {
             return undefined;
         }
         const document = new Document(app, data["name"], data["id"]);
-        document.history.disabled = true;
-        // Before the models: a body's feature chain resolves its parameters against
-        // the table, and deserializing a body rebuilds it.
-        document.variables.setItems(data["variables"] ?? []);
-        document.acts.push(...data["acts"].map((x: Serialized) => Serializer.deserializeObject(document, x)));
-        if (data["userData"]) {
-            document.userData = data["userData"];
-        }
+        try {
+            document.history.disabled = true;
+            // Before the models: a body's feature chain resolves its parameters against
+            // the table, and deserializing a body rebuilds it.
+            document.variables.setItems(data["variables"] ?? []);
+            document.acts.push(
+                ...data["acts"].map((x: Serialized) => Serializer.deserializeObject(document, x)),
+            );
+            if (data["userData"]) {
+                document.userData = data["userData"];
+            }
 
-        await document.modelManager.deserialize(data["models"]);
-        document.history.disabled = false;
-        return document;
+            await document.modelManager.deserialize(data["models"]);
+            document.history.disabled = false;
+            return document;
+        } catch (error) {
+            app.documents.delete(document);
+            try {
+                document.dispose();
+            } catch (cleanupError) {
+                Logger.error("Failed to dispose a partially loaded document", cleanupError);
+            }
+            throw error;
+        }
     }
 }

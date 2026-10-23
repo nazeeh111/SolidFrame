@@ -7,8 +7,8 @@ export interface StartupParams {
 }
 
 /**
- * Parse the startup query string: each repeated `plugin` param is loaded as a
- * plugin, and `url` (falling back to `model`) points to a file to open.
+ * Parse the startup query string: collect repeated `plugin` values for the
+ * ignored-plugin notice. `url` (falling back to `model`) points to a model file.
  */
 export function parseStartupParams(search: string): StartupParams {
     const params = new URLSearchParams(search);

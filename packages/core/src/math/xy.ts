@@ -96,7 +96,7 @@ export class XY {
     /**
      * Computes the angular value in radians between me and right
      * @param right vector
-     * @returns [0, PI]
+     * @returns [-PI, PI], positive counterclockwise
      */
     angleTo(right: XY): number | undefined {
         if (this.isEqualTo(XY.zero) || right.isEqualTo(XY.zero)) return undefined;
@@ -113,11 +113,13 @@ export class XY {
 
     isParallelTo(right: XY, tolerance: number = 1e-8): boolean | undefined {
         const angle = this.angleTo(right);
-        return angle === undefined ? undefined : angle <= tolerance || Math.PI - angle <= tolerance;
+        return angle === undefined
+            ? undefined
+            : Math.abs(angle) <= tolerance || Math.PI - Math.abs(angle) <= tolerance;
     }
 
     isOppositeTo(right: XY, tolerance: number = 1e-8): boolean | undefined {
         const angle = this.angleTo(right);
-        return angle === undefined ? undefined : Math.PI - angle <= tolerance;
+        return angle === undefined ? undefined : Math.PI - Math.abs(angle) <= tolerance;
     }
 }

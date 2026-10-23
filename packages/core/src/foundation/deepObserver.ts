@@ -71,7 +71,6 @@ export class DeepObserver {
 
         const sourceHandler = handlerMap.get(handler);
         if (!sourceHandler) {
-            DeepObserver.handlers.delete(instance);
             return;
         }
 
@@ -134,17 +133,17 @@ export class DeepObserver {
         prefix: string | undefined,
     ) {
         const value = (target as any)[property];
-        if (value === undefined && prefix !== undefined) {
-            const sources = [];
-            for (const source of sourceHandler.sources) {
-                if (source.prefix?.startsWith(prefix)) {
+        if (prefix !== undefined) {
+            const previousSources = sourceHandler.sources;
+            sourceHandler.sources = previousSources.filter(
+                (source) => source.prefix !== prefix && !source.prefix?.startsWith(`${prefix}.`),
+            );
+            const retainedSources = new Set(sourceHandler.sources.map((source) => source.source));
+            for (const source of previousSources) {
+                if (!retainedSources.has(source.source)) {
                     source.source.removePropertyChanged(sourceHandler.handler);
-                } else {
-                    sources.push(source);
                 }
             }
-            sourceHandler.sources = sources;
-            return;
         }
 
         if (isPropertyChanged(value)) {
