@@ -30,7 +30,9 @@ import { mustQuery } from "./_helpers/domHelpers";
 describe("showDialog", () => {
     // Cleanup dialogs after each test
     afterEach(() => {
-        document.body.querySelectorAll("dialog").forEach((d) => d.remove());
+        document.body.querySelectorAll("dialog").forEach((d) => {
+            d.remove();
+        });
     });
 
     test("should create a dialog element and append it to document.body", () => {
@@ -49,6 +51,7 @@ describe("showDialog", () => {
         const dialog = mustQuery(document.body, "dialog");
         const titleEl = dialog.querySelector('[class*="title"]');
         expect(titleEl).not.toBeNull();
+        expect(dialog.getAttribute("aria-labelledby")).toBe(titleEl?.id);
     });
 
     test("should render the content element inside the dialog", () => {
@@ -168,6 +171,58 @@ describe("showDialog", () => {
         confirmBtn.click();
 
         // Dialog should still be in DOM because shouldClose returned false
+        expect(document.body.querySelector("dialog")).not.toBeNull();
+    });
+
+    test("Enter on Cancel does not confirm the dialog", () => {
+        const confirm = rs.fn();
+        showDialog("dialog.title" as I18nKeys, document.createElement("input"), confirm);
+        const cancel = mustQuery(document.body, "dialog").querySelectorAll("button")[1];
+        cancel.focus();
+        cancel.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+        expect(confirm).not.toHaveBeenCalled();
+        // Native button activation follows keydown in a real browser.
+        cancel.click();
+        expect(document.body.querySelector("dialog")).toBeNull();
+        expect(confirm).not.toHaveBeenCalled();
+    });
+
+    test("Enter preserves multiline editing and select navigation", () => {
+        for (const tag of ["textarea", "select"]) {
+            const confirm = rs.fn();
+            const content = document.createElement(tag);
+            showDialog("dialog.title" as I18nKeys, content, confirm);
+            content.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+            expect(confirm).not.toHaveBeenCalled();
+            expect(document.body.querySelector("dialog")).not.toBeNull();
+            mustQuery(document.body, "dialog").remove();
+        }
+    });
+
+    test("dialog shortcuts stay out of document modeling hotkeys", () => {
+        const shortcut = rs.fn();
+        document.addEventListener("keydown", shortcut);
+        try {
+            const content = document.createElement("input");
+            showDialog("dialog.title" as I18nKeys, content);
+            content.dispatchEvent(new KeyboardEvent("keydown", { key: "Delete", bubbles: true }));
+            expect(shortcut).not.toHaveBeenCalled();
+        } finally {
+            document.removeEventListener("keydown", shortcut);
+        }
+    });
+
+    test("Enter from an input uses the same validation gate as the confirm button", () => {
+        const confirm = rs.fn();
+        const content = document.createElement("input");
+        showDialog("dialog.title" as I18nKeys, content, [
+            { content: "common.confirm", shouldClose: () => false, onclick: confirm },
+            { content: "common.cancel" },
+        ]);
+        const event = new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true });
+        content.dispatchEvent(event);
+        expect(event.defaultPrevented).toBe(true);
+        expect(confirm).toHaveBeenCalledTimes(1);
         expect(document.body.querySelector("dialog")).not.toBeNull();
     });
 
