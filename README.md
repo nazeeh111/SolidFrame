@@ -1,8 +1,6 @@
 # SolidFrame
 
-Browser CAD with editable solids, parametric sketches, and local project files.
-
-SolidFrame is a CAD application developed and maintained by **Nazeeh Abdul-Hadi**. It brings solid modeling, parametric sketches, feature history, geometry exchange, and local document storage into a focused browser workspace. Nazeeh’s work includes an editable mechanical part builder, the project hub and workholding fixture, workspace styling, keyboard-accessible modeling controls, startup safeguards, and deployment improvements.
+Build a drilled plate or bracket, edit native solids, and export STEP or STL in your browser. Start with the seven-part fixture or create a part from dimensions.
 
 [Open SolidFrame](https://nazeeh111.github.io/SolidFrame/) · [Source and license](LICENSE)
 
@@ -81,6 +79,8 @@ npm run check
 `npm run check` is the upstream Biome command and **writes formatting fixes**. The test suite uses Rstest and Happy-DOM; geometry integration tests load the real local OpenCascade WASM. Added regressions exercise the editable sample's solid geometry, serialization and parameter updates, startup plugin restrictions, and deployment paths. Passing tests are bounded evidence, not a guarantee for every model, browser, or exchange file. See [verification](docs/solidframe-verification.md) for the exact observed checks and limits.
 
 ## Source and licensing
+
+SolidFrame is developed and maintained by **Nazeeh Abdul-Hadi**. Its mechanical part builder, project hub, editable fixture, workspace identity, keyboard controls and startup safeguards build on the CAD foundation below.
 
 SolidFrame builds on [Chili3D](https://github.com/xiangechen/chili3d) by 仙阁 (Xiange Chen) and its contributors, using source baseline [`03a6a542`](https://github.com/xiangechen/chili3d/commit/03a6a542e841a7f1952f67aa729e0658a8096c08). Their source headers and copyright notices are preserved.
 
