@@ -447,6 +447,7 @@ export class ThreeView extends Observable implements IView {
         }
 
         this.cameraController.camera.layers.enableAll();
+        this.cameraController.setCameraLayer(this.camera, this.mode);
         this._isolatedNodes = undefined;
     }
 
