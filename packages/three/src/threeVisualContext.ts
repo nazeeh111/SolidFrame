@@ -126,7 +126,7 @@ export class ThreeVisualContext implements IVisualContext {
         for (let i = 0; i < paths.length - 1; i++) {
             obj = obj[paths[i]];
         }
-        if (obj === undefined) return;
+        if (obj === undefined || obj === null) return;
 
         if (value instanceof XY) {
             obj[paths.at(-1)!].set(value.x, value.y);
@@ -168,7 +168,7 @@ export class ThreeVisualContext implements IVisualContext {
             if (isDisposable(x)) x.dispose();
         });
         this.visual.document.modelManager.materials.forEach((x) =>
-            x.removePropertyChanged(this.onMaterialPropertyChanged),
+            DeepObserver.removeDeepPropertyChangedHandler(x, this.onMaterialPropertyChanged),
         );
         this.visual.document.modelManager.materials.removeCollectionChanged(this.onMaterialCollectionChanged);
         this.visual.document.modelManager.removeNodeObserver(this.handleNodeChanged);
