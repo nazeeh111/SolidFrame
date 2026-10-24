@@ -89,7 +89,7 @@ export class ThreeViewHandler implements IEventHandler {
             if (dtCenter > Math.abs(dtDistance) * 0.5) {
                 // 0.5 no meaning, just for scale
                 view.cameraController.pan(current.center.x - last.center.x, current.center.y - last.center.y);
-            } else {
+            } else if (dtDistance !== 0) {
                 view.cameraController.zoom(current.center.x, current.center.y, -dtDistance);
             }
         }
@@ -129,7 +129,7 @@ export class ThreeViewHandler implements IEventHandler {
             x: (first.offsetX + second.offsetX) / 2,
             y: (first.offsetY + second.offsetY) / 2,
         };
-        const distance = this.distance(first.offsetX, second.offsetX, first.offsetY, second.offsetY);
+        const distance = this.distance(first.offsetX, first.offsetY, second.offsetX, second.offsetY);
         return { center, distance };
     }
 
