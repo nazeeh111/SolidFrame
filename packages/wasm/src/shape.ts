@@ -103,6 +103,7 @@ export class OccShape implements IShape {
 
     readonly shapeType: ShapeType;
     protected _mesh: IShapeMeshData | undefined;
+    protected _isGeometryModified = false;
     get mesh(): IShapeMeshData {
         this._mesh ??= new Mesher(this);
         return this._mesh;
@@ -125,20 +126,6 @@ export class OccShape implements IShape {
         gc((c) => {
             const location = c(new wasm.TopLoc_Location(c(convertFromMatrix(matrix))));
             this._shape.setLocation(location, false);
-
-            if (this._boundingBox) {
-                this._boundingBox = BoundingBox.transformed(this._boundingBox, matrix);
-            }
-            if (this._orientedBoundingBox) {
-                this._orientedBoundingBox = {
-                    center: {
-                        location: matrix.ofPoint(this._orientedBoundingBox.center.location),
-                        xDirection: matrix.ofVector(this._orientedBoundingBox.center.xDirection),
-                        direction: matrix.ofVector(this._orientedBoundingBox.center.direction),
-                    },
-                    size: this._orientedBoundingBox.size,
-                };
-            }
 
             this.onTransformChanged();
         });
@@ -208,6 +195,9 @@ export class OccShape implements IShape {
     }
 
     protected onTransformChanged(): void {
+        this._isGeometryModified = true;
+        this._boundingBox = undefined;
+        this._orientedBoundingBox = undefined;
         if (this._mesh) {
             Logger.warn("Shape matrix changed, mesh will be recreated");
             this._mesh = undefined;
@@ -425,6 +415,7 @@ export interface OccEdgeOptions {
 })
 export class OccEdge extends OccShape implements IEdge {
     private _edge: TopoDS_Edge;
+    private readonly _previousCurves = new Set<ITrimmedCurve>();
     get edge(): TopoDS_Edge {
         return this._edge;
     }
@@ -438,8 +429,16 @@ export class OccEdge extends OccShape implements IEdge {
         if (!(curve instanceof OccCurve)) {
             throw new Error("Invalid curve");
         }
-        this._shape = wasm.Edge.fromCurve(curve.curve);
-        this._mesh = undefined;
+        const edge = wasm.Edge.fromCurve(curve.curve);
+        this._shape = edge;
+        this._edge = edge;
+        // Borrowers may replay an update with a previously returned curve.
+        // Keep that curve alive until its owning edge is disposed.
+        if (this._curve) {
+            this._previousCurves.add(this._curve);
+            this._curve = undefined;
+        }
+        this.onTransformChanged();
     }
 
     intersect(other: IEdge | Line): { parameter: number; point: XYZ }[] {
@@ -547,6 +546,8 @@ export class OccEdge extends OccShape implements IEdge {
 
     protected override disposeInternal(): void {
         super.disposeInternal();
+        this._previousCurves.forEach((curve) => curve.dispose());
+        this._previousCurves.clear();
         if (this._curve && isDisposable(this._curve)) {
             this._curve.dispose();
             this._curve = null as any;
@@ -772,6 +773,7 @@ export interface OccSubEdgeShapeOptions {
 
 export class OccSubEdgeShape extends OccEdge implements ISubEdgeShape {
     override get mesh(): IShapeMeshData {
+        if (this._isGeometryModified) return super.mesh;
         this._mesh ??= {
             faces: undefined,
             vertexs: undefined,
@@ -803,6 +805,7 @@ export interface OccSubFaceShapeOptions {
 
 export class OccSubFaceShape extends OccFace implements ISubFaceShape {
     override get mesh(): IShapeMeshData {
+        if (this._isGeometryModified) return super.mesh;
         this._mesh ??= {
             faces: MeshUtils.subFace(this.parent.mesh.faces!, this.index),
             vertexs: undefined,
