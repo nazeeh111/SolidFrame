@@ -17,16 +17,17 @@ import {
 })
 export class SaveDocumentToFile implements ICommand {
     async execute(app: IApplication): Promise<void> {
-        if (!app.activeView?.document) return;
+        const document = app.activeView?.document;
+        if (!document) return;
         PubSub.default.pub(
             "showPermanent",
             async () => {
                 await new Promise((r) => {
                     setTimeout(r, 100);
                 });
-                const s = app.activeView?.document.serialize();
+                const s = document.serialize();
                 PubSub.default.pub("showToast", "toast.downloading");
-                download([JSON.stringify(s)], `${app.activeView?.document.name}${DOCUMENT_FILE_EXTENSION}`);
+                download([JSON.stringify(s)], `${document.name}${DOCUMENT_FILE_EXTENSION}`);
             },
             "toast.excuting{0}",
             I18n.translate("command.doc.saveToFile"),
