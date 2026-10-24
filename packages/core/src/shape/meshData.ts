@@ -170,7 +170,7 @@ export class MeshDataUtils {
     static mergeFaceMesh(data: FaceMeshData, other: FaceMeshData): FaceMeshData {
         const otherRange = other.range.map((range) => {
             return {
-                start: range.start + data.position.length / 3,
+                start: range.start + data.index.length,
                 count: range.count,
                 shape: range.shape,
                 transform: range.transform,
@@ -186,11 +186,14 @@ export class MeshDataUtils {
         return {
             position: concatTypedArrays([data.position, other.position]),
             range: data.range.concat(otherRange),
-            index: concatTypedArrays([data.index, other.index]),
+            index: concatTypedArrays([
+                data.index,
+                other.index.map((index) => index + data.position.length / 3),
+            ]),
             normal: concatTypedArrays([data.normal, other.normal]),
             uv: concatTypedArrays([data.uv, other.uv]),
             color: data.color,
-            groups,
+            groups: data.groups.concat(groups),
         };
     }
 }

@@ -224,7 +224,7 @@ describe("MeshData", () => {
                     shape: {} as ISubShape,
                     transform: undefined,
                 });
-                expect(result.index).toEqual(new Uint32Array([0, 1, 2, 0, 1, 2]));
+                expect(result.index).toEqual(new Uint32Array([0, 1, 2, 3, 4, 5]));
                 expect(result.normal).toEqual(
                     new Float32Array([0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1]),
                 );
