@@ -342,7 +342,8 @@ export class VariablesEditor extends HTMLElement {
      */
     private formatValue(value: number): string {
         // Four decimals is enough to judge a parameter without burying the number in noise.
-        return String(Math.round(value * 1e4) / 1e4);
+        const rounded = Math.round(value * 1e4) / 1e4;
+        return String(Number.isFinite(rounded) ? rounded : value);
     }
 }
 

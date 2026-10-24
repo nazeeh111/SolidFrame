@@ -143,6 +143,28 @@ describe("showVariablesPanel", () => {
         expect(document.variables.items[0]).toMatchObject({ name: "w", expression: "0", type: "length" });
     });
 
+    test.each([
+        { expression: "1e308", value: 1e308, display: "1e+308" },
+        { expression: "-1e308", value: -1e308, display: "-1e+308" },
+        { expression: "1e308 / 2", value: 5e307, display: "5e+307" },
+        { expression: "12.34567", value: 12.34567, display: "12.3457" },
+        { expression: "-12.34567", value: -12.34567, display: "-12.3457" },
+        { expression: "-0.00001", value: -0.00001, display: "0" },
+        { expression: "1.23445", value: 1.23445, display: "1.2345" },
+        { expression: "-1.23445", value: -1.23445, display: "-1.2344" },
+    ])("formats the finite value of $expression without overflow", ({ expression, value, display }) => {
+        const document = documentWith([variable("v1", "number", expression, "unitless")]);
+        const evaluated = document.variables.evaluate();
+        expect(evaluated.errors.size).toBe(0);
+        expect(evaluated.scope.get("number")?.value).toBe(value);
+        const { editor } = open(document);
+        const cell = mustQuery<HTMLInputElement>(editor, ".v-value");
+
+        expect(cell.value).toBe(display);
+        expect(cell.title).toBe(expression);
+        expect(document.history.undoCount()).toBe(0);
+    });
+
     test("the value column reads the value, and the expression while focused", () => {
         const document = documentWith([
             variable("v1", "w", "50"),
