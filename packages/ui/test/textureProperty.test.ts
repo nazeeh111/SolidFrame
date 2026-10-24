@@ -34,6 +34,8 @@ rs.mock("../src/property/basicPropertyControl", () => ({
 import "./_helpers/mockElement";
 import { readFileAsyncMock } from "./_helpers/mockCoreTexture";
 
+import { readFileAsync as readLocalFileAsync } from "../../core/src/foundation/utils/readFileAsync";
+import { Result } from "../../core/src/foundation/result";
 import { TextureProperty } from "../src/property/textureProperty";
 import { mustQuery } from "./_helpers/domHelpers";
 
@@ -78,6 +80,49 @@ describe("TextureProperty", () => {
     });
 
     describe("image editing", () => {
+        test("should preserve the texture when the real file helper receives cancel", async () => {
+            readFileAsyncMock.mockImplementation(readLocalFileAsync);
+            const texture = createTexture();
+            const prop = new TextureProperty(createMockDocument(), display, texture);
+            const img = mustQuery(prop, ".tx-image img");
+            const onclick = (img as unknown as { _onclick: () => Promise<void> })._onclick;
+            const click = rs.spyOn(HTMLInputElement.prototype, "click").mockImplementation(function (
+                this: HTMLInputElement,
+            ) {
+                this.dispatchEvent(new Event("cancel"));
+            });
+            try {
+                await expect(onclick()).resolves.toBeUndefined();
+                expect(click).toHaveBeenCalledTimes(1);
+                expect(document.querySelector('input[type="file"]')).toBeNull();
+                expect(texture.image).toBe("data:image/png;base64,old");
+            } finally {
+                click.mockRestore();
+            }
+        });
+
+        test("should preserve the texture when file reading returns an error", async () => {
+            readFileAsyncMock.mockResolvedValue(Result.err("could not read image"));
+            const texture = createTexture();
+            const prop = new TextureProperty(createMockDocument(), display, texture);
+            const img = mustQuery(prop, ".tx-image img");
+            const onclick = (img as unknown as { _onclick: () => Promise<void> })._onclick;
+
+            await expect(onclick()).resolves.toBeUndefined();
+            expect(texture.image).toBe("data:image/png;base64,old");
+        });
+
+        test("should preserve the texture when the selected file list is empty", async () => {
+            readFileAsyncMock.mockResolvedValue(Result.ok([]));
+            const texture = createTexture();
+            const prop = new TextureProperty(createMockDocument(), display, texture);
+            const img = mustQuery(prop, ".tx-image img");
+            const onclick = (img as unknown as { _onclick: () => Promise<void> })._onclick;
+
+            await expect(onclick()).resolves.toBeUndefined();
+            expect(texture.image).toBe("data:image/png;base64,old");
+        });
+
         test("should clear the texture image when the remove icon is clicked", () => {
             const texture = createTexture();
             const prop = new TextureProperty(createMockDocument(), display, texture);
@@ -91,7 +136,9 @@ describe("TextureProperty", () => {
         });
 
         test("should assign the picked file data URL to the texture image", async () => {
-            readFileAsyncMock.mockResolvedValue({ value: [{ data: "data:image/png;base64,new" }] });
+            readFileAsyncMock.mockResolvedValue(
+                Result.ok([{ fileName: "new.png", data: "data:image/png;base64,new" }]),
+            );
             const texture = createTexture();
             const prop = new TextureProperty(createMockDocument(), display, texture);
 

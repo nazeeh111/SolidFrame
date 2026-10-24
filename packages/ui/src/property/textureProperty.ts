@@ -53,6 +53,7 @@ export class TextureProperty extends Expander {
 
     private readonly selectTexture = async () => {
         const file = await readFileAsync(".png, .jpg, .jpeg", false, "readAsDataURL");
+        if (!file.isOk || file.value.length === 0) return;
         this.texture.image = file.value[0].data;
     };
 }
