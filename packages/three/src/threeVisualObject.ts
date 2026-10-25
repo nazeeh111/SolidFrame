@@ -207,8 +207,11 @@ export class ThreeMeshObject extends ThreeVisualObject implements IHighlightable
 
     private readonly handleGeometryPropertyChanged = (property: keyof MeshNode) => {
         if (property === "mesh") {
+            const previousMesh = this._mesh;
             this.disposeMesh();
             this._mesh = this.createMesh();
+            this.remove(previousMesh);
+            this.material = this._mesh.material;
             this.add(this._mesh);
         } else if (property === "materialId" && this._mesh instanceof Mesh) {
             this.material = this.context.getMaterial(this.meshNode.materialId);
