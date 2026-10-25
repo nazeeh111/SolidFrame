@@ -17,6 +17,7 @@ export abstract class SnapEventHandler<D extends SnapData = SnapData> implements
     private _tempShapes?: number[];
     protected showTempPoint: boolean = true;
     protected _snaped?: SnapResult;
+    private _pointerSnaped?: SnapResult;
     private _state: SnapState = "idle";
 
     facePreviewOpion: MeshOption = { meshOpacity: 1 };
@@ -44,6 +45,7 @@ export abstract class SnapEventHandler<D extends SnapData = SnapData> implements
 
     dispose() {
         this._snaped = undefined;
+        this._pointerSnaped = undefined;
         this._state = "completed";
     }
 
@@ -58,6 +60,7 @@ export abstract class SnapEventHandler<D extends SnapData = SnapData> implements
     private handleCancel() {
         if (this._state === "cancelled") return;
 
+        this._pointerSnaped = undefined;
         this._state = "cancelled";
         this.controller.cancel();
         this.cleanupResources();
@@ -83,22 +86,35 @@ export abstract class SnapEventHandler<D extends SnapData = SnapData> implements
 
     private updateSnapPoint(view: IView, event: PointerEvent) {
         this.setSnaped(view, event);
-        if (this._snaped) {
-            this.showSnapPrompt(this._snaped);
+        if (this._pointerSnaped) {
+            this.showSnapPrompt(this._pointerSnaped);
         } else {
             this.clearSnapPrompt();
         }
     }
 
     private updateVisualFeedback(view: IView) {
-        this.showTempShape(this._snaped?.point);
+        this.showTempShape(this._pointerSnaped?.point);
         view.document.visual.update();
     }
 
     protected setSnaped(view: IView, event: PointerEvent) {
-        this.findSnapPoint((ShapeTypes.edge | ShapeTypes.vertex | ShapeTypes.face) as ShapeType, view, event);
+        // Keep the last valid direction for numeric input, but only accept or preview a current pointer hit.
+        const previous = this._snaped;
+        this._pointerSnaped = undefined;
+        this._snaped = undefined;
+        try {
+            this.findSnapPoint(
+                (ShapeTypes.edge | ShapeTypes.vertex | ShapeTypes.face) as ShapeType,
+                view,
+                event,
+            );
+            this._pointerSnaped = this._snaped;
+        } finally {
+            this._snaped ??= previous;
+        }
 
-        this.snaps.forEach((snap) => snap.handleSnaped?.(view.document.visual.document, this._snaped));
+        this.snaps.forEach((snap) => snap.handleSnaped?.(view.document.visual.document, this._pointerSnaped));
     }
 
     private findNearestFeaturePoint(view: IView, event: PointerEvent) {
@@ -221,7 +237,7 @@ export abstract class SnapEventHandler<D extends SnapData = SnapData> implements
 
     pointerDown(view: IView, event: PointerEvent): void {
         if (event.pointerType === "mouse" && event.button === 0) {
-            if (this._snaped) {
+            if (this._pointerSnaped) {
                 this.handleSuccess();
             } else {
                 PubSub.default.pub("showToast", "toast.snap.notFoundValidPoint");
@@ -230,13 +246,14 @@ export abstract class SnapEventHandler<D extends SnapData = SnapData> implements
     }
 
     pointerUp(view: IView, event: PointerEvent): void {
-        if (event.pointerType !== "mouse" && event.isPrimary && this._snaped) {
+        if (event.pointerType !== "mouse" && event.isPrimary && this._pointerSnaped) {
             this.handleSuccess();
         }
     }
 
     pointerOut(view: IView, event: PointerEvent) {
         this._snaped = undefined;
+        this._pointerSnaped = undefined;
     }
 
     mouseWheel(view: IView, event: WheelEvent): void {
@@ -246,7 +263,7 @@ export abstract class SnapEventHandler<D extends SnapData = SnapData> implements
     keyDown(view: IView, event: KeyboardEvent): void {
         this.data.onKeyDown?.(event, () => {
             this.removeTempShapes();
-            this.showTempShape(this._snaped?.point);
+            this.showTempShape(this._pointerSnaped?.point);
             view.document.visual.update();
         });
 
