@@ -132,8 +132,11 @@ async function runReselectSession<TRef>(
         return spec.capture(picked);
     } finally {
         selection.onShapeChanged.remove(preview);
-        spec.teardown?.();
-        history.disabled = historyWasDisabled;
+        try {
+            spec.teardown?.();
+        } finally {
+            history.disabled = historyWasDisabled;
+        }
         selection.setSelectedNodes([host], false);
     }
 }
