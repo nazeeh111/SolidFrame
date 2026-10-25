@@ -39,9 +39,12 @@ export abstract class SelectionHandler implements IEventHandler {
         readonly controller?: AsyncController,
     ) {
         controller?.onCancelled((s) => {
+            this.resetGesture();
             this.clearSelected(document);
             this.cleanHighlights();
         });
+        controller?.onCompleted(this.resetGesture);
+        controller?.onFailed(this.resetGesture);
     }
 
     #disposed = false;
@@ -54,8 +57,15 @@ export abstract class SelectionHandler implements IEventHandler {
     };
 
     protected disposeInternal() {
-        this.pointerEventMap.clear();
+        this.resetGesture();
     }
+
+    private readonly resetGesture = () => {
+        this.mouse.isDown = false;
+        this.pointerEventMap.clear();
+        this.rect?.element.remove();
+        this.rect = undefined;
+    };
 
     pointerMove(view: IView, event: PointerEvent): void {
         if (event.buttons === MOUSE_MIDDLE) return;
@@ -142,6 +152,7 @@ export abstract class SelectionHandler implements IEventHandler {
 
     keyDown(view: IView, event: KeyboardEvent): void {
         if (event.key === "Escape") {
+            this.resetGesture();
             this.controller ? this.controller.cancel() : this.clearSelected(view.document.visual.document);
             this.cleanHighlights();
         } else if (event.key === "Enter" || event.key === " ") {
@@ -150,6 +161,7 @@ export abstract class SelectionHandler implements IEventHandler {
                 event.preventDefault();
                 event.stopImmediatePropagation();
             }
+            this.resetGesture();
             this.cleanHighlights();
             this.controller?.success(); // accept selection
         } else if (event.key === "Tab") {
