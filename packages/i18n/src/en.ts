@@ -405,6 +405,7 @@ export default {
         "pipe.bendType": "Bend Type",
         "prompt.default{0}{1}":
             "{0} to pan the view, {1} to rotate the view, Mouse wheel to scroll the zoom view",
+        "prompt.touchNavigation": "2-finger pan · pinch zoom · 3-finger rotate",
         "prompt.deleteDocument{0}": "Do you want to delete {0}?",
         "prompt.pickArcBulge": "pick bulge point, ESC key to cancel",
         "prompt.pickArcEnd": "pick end point, ESC key to cancel",

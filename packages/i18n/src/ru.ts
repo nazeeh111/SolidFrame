@@ -345,6 +345,7 @@ export default {
         "pipe.bendType": "Тип изгиба",
         "prompt.default{0}{1}":
             "{0} чтобы двигать вид, {1} чтобы повернуть вид, Колесико мыши чтобы увеличить или уменьшить.",
+        "prompt.touchNavigation": "2 пальца: сдвиг · щипок: зум · 3 пальца: поворот",
         "prompt.deleteDocument{0}": "Удалить {0}?",
         "prompt.pickArcBulge": "выберите точку подъема, ESC для отмены",
         "prompt.pickArcEnd": "выберите точку завершения, ESC для отмены",

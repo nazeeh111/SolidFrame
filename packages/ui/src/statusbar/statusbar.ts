@@ -14,6 +14,11 @@ export class Statusbar extends HTMLElement {
         className: style.tip,
     });
 
+    readonly touchTip = label({
+        textContent: "",
+        className: style.touchTip,
+    });
+
     constructor(className: string) {
         super();
         this.className = `${style.panel} ${className}`;
@@ -34,7 +39,7 @@ export class Statusbar extends HTMLElement {
 
     private render() {
         this.append(
-            div({ className: style.left }, this.tip),
+            div({ className: style.left }, this.tip, this.touchTip),
             div({ className: style.right }, new SnapConfig()),
         );
     }
@@ -42,12 +47,14 @@ export class Statusbar extends HTMLElement {
     private readonly statusBarTip = (tip: I18nKeys) => {
         this._isDefaultTip = false;
         I18n.set(this.tip, "textContent", tip);
+        I18n.set(this.touchTip, "textContent", tip);
     };
 
     private readonly setDefaultTip = () => {
         this._isDefaultTip = true;
         const { pan, rotate } = Navigation3D.navigationKeyMap();
         I18n.set(this.tip, "textContent", "prompt.default{0}{1}", pan, rotate);
+        I18n.set(this.touchTip, "textContent", "prompt.touchNavigation");
     };
 }
 

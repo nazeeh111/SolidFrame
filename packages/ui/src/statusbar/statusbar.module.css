@@ -10,15 +10,33 @@
 .left {
     flex: 1;
 
-    .tip {
+    .tip,
+    .touchTip {
         font-size: 12px;
         margin: 4px 8px;
         color: var(--statusbar-foreground-color);
+    }
+
+    .touchTip {
+        display: none;
     }
 }
 
 .right {
     flex: 0 1 auto;
+}
+
+@media (any-pointer: coarse) {
+    .left {
+        .tip {
+            display: none;
+        }
+
+        .touchTip {
+            display: block;
+        }
+    }
+
 }
 
 @media (max-width: 680px) {

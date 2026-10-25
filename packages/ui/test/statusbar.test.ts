@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, test } from "@rstest/core";
 rs.mock("../src/statusbar/statusbar.module.css", () => ({
     panel: "sb-panel",
     tip: "sb-tip",
+    touchTip: "sb-touch-tip",
     left: "sb-left",
     right: "sb-right",
 }));
@@ -58,6 +59,7 @@ import { Statusbar } from "../src/statusbar/statusbar";
 import { mustQuery } from "./_helpers/domHelpers";
 
 const DEFAULT_TIP_ARGS = ["textContent", "prompt.default{0}{1}", "Middle", "Shift+Middle"];
+const TOUCH_TIP_ARGS = ["textContent", "prompt.touchNavigation"];
 
 describe("Statusbar", () => {
     beforeEach(() => {
@@ -76,12 +78,14 @@ describe("Statusbar", () => {
         test("should set the default tip from the navigation key map", () => {
             const bar = new Statusbar("test-bar");
             expect(i18nSetMock).toHaveBeenCalledWith(bar.tip, ...DEFAULT_TIP_ARGS);
+            expect(i18nSetMock).toHaveBeenCalledWith(bar.touchTip, ...TOUCH_TIP_ARGS);
         });
 
         test("should render the tip label in the left section", () => {
             const bar = new Statusbar("test-bar");
             const left = mustQuery(bar, ".sb-left");
             expect(left.contains(bar.tip)).toBe(true);
+            expect(left.contains(bar.touchTip)).toBe(true);
             mustQuery(bar, ".sb-right");
         });
 
@@ -101,11 +105,13 @@ describe("Statusbar", () => {
             expect(tipHandler).toBeDefined();
             tipHandler!("command.create.box" as I18nKeys);
             expect(i18nSetMock).toHaveBeenCalledWith(bar.tip, "textContent", "command.create.box");
+            expect(i18nSetMock).toHaveBeenCalledWith(bar.touchTip, "textContent", "command.create.box");
 
             const clearHandler = pubSubRecorder.handlers.get("clearStatusBarTip");
             expect(clearHandler).toBeDefined();
             clearHandler!();
             expect(i18nSetMock).toHaveBeenCalledWith(bar.tip, ...DEFAULT_TIP_ARGS);
+            expect(i18nSetMock).toHaveBeenCalledWith(bar.touchTip, ...TOUCH_TIP_ARGS);
         });
 
         test("should refresh the default tip when navigation3D config changes", () => {
@@ -115,6 +121,7 @@ describe("Statusbar", () => {
             configChanged.emit("navigation3D");
 
             expect(i18nSetMock).toHaveBeenCalledWith(bar.tip, ...DEFAULT_TIP_ARGS);
+            expect(i18nSetMock).toHaveBeenCalledWith(bar.touchTip, ...TOUCH_TIP_ARGS);
         });
 
         test("should keep a custom tip when navigation3D config changes", () => {

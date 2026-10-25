@@ -399,6 +399,7 @@ export default {
         "pipe.bendRadius": "弯管半径",
         "pipe.bendType": "弯管类型",
         "prompt.default{0}{1}": "{0} 平移视图，{1} 旋转视图，滚轮缩放视图",
+        "prompt.touchNavigation": "双指拖动平移，捏合缩放 · 三指拖动旋转",
         "prompt.deleteDocument{0}": "是否删除 {0} ？",
         "prompt.pickArcBulge": "请选择凸点，按 ESC 键取消",
         "prompt.pickArcEnd": "请选择终点，按 ESC 键取消",
