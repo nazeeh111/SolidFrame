@@ -8,6 +8,7 @@ import {
     type IStep,
     isConsumedTool,
     MultistepCommand,
+    NodeUtils,
     PubSub,
     Transaction,
 } from "@chili3d/core";
@@ -32,9 +33,10 @@ export class Delete extends MultistepCommand {
         }
         if (deletable.length === 0) return;
 
+        const currentNode = this.document.modelManager.currentNode;
         if (
-            this.document.modelManager.currentNode &&
-            deletable.includes(this.document.modelManager.currentNode)
+            currentNode &&
+            (deletable.includes(currentNode) || NodeUtils.containsDescendant(new Set(deletable), currentNode))
         ) {
             this.document.modelManager.currentNode = this.document.modelManager.rootNode;
         }
