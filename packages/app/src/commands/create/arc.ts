@@ -63,7 +63,7 @@ export class Arc extends CreateCommand {
             dimension: Dimensions.D1D2,
             preview: (point: XYZ | undefined) => this.anglePreview(point, center, p1, points),
             plane: () => plane,
-            validators: [this.angleValidator(center, plane)],
+            validator: this.angleValidator(center, plane),
         };
     };
 
