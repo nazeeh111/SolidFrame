@@ -116,4 +116,3 @@ docker compose up -d   # Builds and serves the app at http://localhost:8080
 - `camelCase` functions/variables, `PascalCase` classes, `UPPER_SNAKE_CASE` constants
 - Type-only imports: `import type { IFoo } from "..."`
 - Pre-commit hooks via simple-git-hooks + lint-staged
-
