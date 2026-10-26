@@ -1,4 +1,4 @@
-# Chili3D coding guidelines
+# SolidFrame coding guidelines
 
 ## Build & Test
 

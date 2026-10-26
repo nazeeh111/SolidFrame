@@ -3,7 +3,6 @@
     "version": "0.7.1",
     "description": "A complete browser CAD workspace, adapted from Chili3D with editable starter geometry and local project workflows.",
     "documentVersion": "0.7.1",
-    "author": "\u4ed9\u9601",
     "type": "module",
     "scripts": {
         "build": "rspack build && node scripts/build-plugins.mjs",

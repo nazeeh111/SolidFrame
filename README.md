@@ -78,10 +78,6 @@ npm run check
 
 `npm run check` is the upstream Biome command and **writes formatting fixes**. The test suite uses Rstest and Happy-DOM; geometry integration tests load the real local OpenCascade WASM. Added regressions exercise the editable sample's solid geometry, serialization and parameter updates, startup plugin restrictions, and deployment paths. Passing tests are bounded evidence, not a guarantee for every model, browser, or exchange file. See [verification](docs/solidframe-verification.md) for the exact observed checks and limits.
 
-## Source and licensing
+## License
 
-SolidFrame is developed and maintained by **Nazeeh Abdul-Hadi**. Its mechanical part builder, project hub, editable fixture, workspace identity, keyboard controls and startup safeguards build on the CAD foundation below.
-
-SolidFrame builds on [Chili3D](https://github.com/xiangechen/chili3d) by 仙阁 (Xiange Chen) and its contributors, using source baseline [`03a6a542`](https://github.com/xiangechen/chili3d/commit/03a6a542e841a7f1952f67aa729e0658a8096c08). Their source headers and copyright notices are preserved.
-
-Application code is licensed under [AGPL-3.0](LICENSE); the C++/WASM component carries [its existing LGPL notice](cpp/LICENSE-chili-wasm.txt). Third-party dependencies retain their own licenses. The running app links to corresponding source and license notices from **About & licenses**. See [upstream documentation](UPSTREAM_README.md) for architecture and C++ development details, and [NOTICE](NOTICE) for attribution.
+Application code is licensed under [AGPL-3.0](LICENSE); the C++/WASM component carries [its existing LGPL notice](cpp/LICENSE-chili-wasm.txt). Third-party dependencies retain their own licenses. The running app links to corresponding source and license notices from **About & licenses**. See the [technical reference](UPSTREAM_README.md) for architecture and C++ development details, and [NOTICE](NOTICE) for the retained engine’s source, copyright holders and SolidFrame modifications.
