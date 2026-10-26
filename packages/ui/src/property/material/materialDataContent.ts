@@ -1,7 +1,7 @@
 // Part of the Chili3d Project, under the AGPL-3.0 License.
 // See LICENSE file in the project root for full license information.
 
-import { type IDocument, Material, Observable } from "@chili3d/core";
+import { I18n, type IDocument, Material, Observable } from "@chili3d/core";
 
 let count = 1;
 
@@ -34,7 +34,11 @@ export class MaterialDataContent extends Observable {
 
     addMaterial() {
         this.document.modelManager.materials.push(
-            new Material({ document: this.document, name: `Material ${count++}`, color: 0xdddddd }),
+            new Material({
+                document: this.document,
+                name: `${I18n.translate("common.material")} ${count++}`,
+                color: 0xdddddd,
+            }),
         );
     }
 

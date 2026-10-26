@@ -230,7 +230,7 @@ export default {
         "common.length": "长度",
         "common.expression": "表达式",
         "common.location": "位置",
-        "common.material": "材质",
+        "common.material": "外观",
         "common.matrix": "矩阵",
         "common.more": "更多",
         "common.name": "名称",

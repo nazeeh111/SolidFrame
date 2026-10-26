@@ -190,7 +190,7 @@ export default {
         "common.length": "Длина",
         "common.expression": "Выражение",
         "common.location": "Положение",
-        "common.material": "Материал",
+        "common.material": "Внешний вид",
         "common.matrix": "Матрица",
         "common.more": "Больше",
         "common.name": "Имя",
