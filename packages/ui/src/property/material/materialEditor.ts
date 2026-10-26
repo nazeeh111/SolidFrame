@@ -72,7 +72,7 @@ export class MaterialEditor extends HTMLElement {
     private material(material: Material) {
         return span({
             className: new Binding(this.dataContent, "editingMaterial", new ActiveStyleConverter(material)),
-            title: material.name,
+            title: new Binding(material, "name"),
             style: {
                 backgroundColor: new Binding(material, "color", this.colorConverter),
                 backgroundImage: new PathBinding(material, "map.image", new UrlStringConverter()),
@@ -112,6 +112,7 @@ export class MaterialEditor extends HTMLElement {
     }
 
     disconnectedCallback() {
+        this.dataContent.removePropertyChanged(this._onEditingMaterialChanged);
         PubSub.default.remove("showProperties", this._handleShowProperty);
     }
 

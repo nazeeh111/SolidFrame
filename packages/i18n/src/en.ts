@@ -233,7 +233,7 @@ export default {
         "common.length": "Length",
         "common.expression": "Expression",
         "common.location": "Location",
-        "common.material": "Material",
+        "common.material": "Appearance",
         "common.matrix": "Matrix",
         "common.more": "More",
         "common.name": "Name",

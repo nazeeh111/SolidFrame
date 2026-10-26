@@ -7,13 +7,17 @@
     div {
         font-size: 14px;
         opacity: 0.75;
-        color: var(--color);
-        min-width: 72px;
+        color: var(--foreground-color);
+        min-width: 80px;
         flex: 0 1 auto;
     }
 
     button {
+        display: flex;
         flex: 1 1 auto;
+        min-width: 0;
+        align-items: center;
+        gap: 8px;
         font-size: 1rem;
         padding: 4px;
         outline: none;
@@ -22,21 +26,37 @@
         border: 1px solid var(--border-color);
         border-radius: 4px;
         margin: 0px;
+        cursor: pointer;
 
         &:hover {
             background-color: var(--hover-background-color);
         }
 
+        &:focus-visible {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+
+        .materialSwatch {
+            flex: 0 0 18px;
+            width: 18px;
+            height: 18px;
+            box-sizing: border-box;
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
+        }
+
         .materialLabel {
             display: inline-block;
+            flex: 1;
+            min-width: 0;
             max-width: 100%;
             overflow: hidden;
             text-overflow: ellipsis;
+            white-space: nowrap;
             vertical-align: middle;
-            padding: 2px 6px;
-            border-radius: 3px;
-            background: rgb(17 21 28 / 88%);
-            color: #fff;
+            color: var(--foreground-color);
+            text-align: left;
         }
     }
 }

@@ -4,9 +4,9 @@ Build a drilled plate or bracket, edit native solids, and export STEP or STL in 
 
 [Open SolidFrame](https://nazeeh111.github.io/SolidFrame/) · [Source and license](LICENSE)
 
-[![SolidFrame modeling workspace with the seven-part fixture, selected base plate, editable 85 mm width, and rebuilt solid](docs/images/editable-fixture.jpg)](docs/images/editable-fixture.jpg)
+[![SolidFrame modeling workspace with the seven-part fixture, selected base plate, editable 85 mm width, and corrected Appearance control](docs/images/editable-fixture.jpg)](docs/images/editable-fixture.jpg)
 
-*The live editable sample after changing the base plate width from 70 to 85 mm. Select a part in the tree, edit a dimension in Properties, and use Fit Content to frame the result. [Open the sample](https://nazeeh111.github.io/SolidFrame/) with **Open editable sample**.*
+*The live editable sample after changing the base plate width from 70 to 85 mm. Select a part in the tree, edit a dimension in Properties, and use Fit Content to frame the result. Appearance controls display color and texture. [Open the sample](https://nazeeh111.github.io/SolidFrame/) with **Open editable sample**.*
 
 ## Design a drilled part
 

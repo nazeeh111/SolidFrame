@@ -43,20 +43,24 @@ export class MaterialProperty extends PropertyBase {
             ),
             button(
                 {
-                    style: {
-                        backgroundColor: new Binding(material, "color", new ColorConverter()),
-                        backgroundImage: new PathBinding(material, "map.image", new UrlStringConverter()),
-                        backgroundBlendMode: "multiply",
-                        backgroundSize: "cover",
-                        cursor: "pointer",
-                    },
+                    title: new Binding(material, "name"),
+                    type: "button",
                     onclick: (e) => {
                         PubSub.default.pub("editMaterial", document, material, (material) => {
                             this.setMaterial(e, material, index);
                         });
                     },
                 },
-                span({ className: style.materialLabel, textContent: material.name }),
+                span({
+                    className: style.materialSwatch,
+                    style: {
+                        backgroundColor: new Binding(material, "color", new ColorConverter()),
+                        backgroundImage: new PathBinding(material, "map.image", new UrlStringConverter()),
+                        backgroundBlendMode: "multiply",
+                        backgroundSize: "cover",
+                    },
+                }),
+                span({ className: style.materialLabel, textContent: new Binding(material, "name") }),
             ),
         );
     }

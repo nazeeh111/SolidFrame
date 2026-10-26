@@ -251,13 +251,13 @@ describe("Application", () => {
             expect(sharedApp.documents.has(doc)).toBe(true);
         });
 
-        test("should add default materials (LightGray, DeepGray)", async () => {
+        test("should add default appearances (Light gray, Dark gray)", async () => {
             const doc = await sharedApp.newDocument("TestDoc3");
             const materialNames = (doc.modelManager.materials as unknown as { name: string }[]).map(
                 (m) => m.name,
             );
-            expect(materialNames).toContain("LightGray");
-            expect(materialNames).toContain("DeepGray");
+            expect(materialNames).toContain("Light gray");
+            expect(materialNames).toContain("Dark gray");
         });
 
         test("should set activeView to the created view", async () => {

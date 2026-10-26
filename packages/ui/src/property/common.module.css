@@ -9,6 +9,6 @@
     font-size: 14px;
     opacity: 0.75;
     color: var(--foreground-color);
-    min-width: 72px;
+    min-width: 80px;
     flex: 0 1 auto;
 }

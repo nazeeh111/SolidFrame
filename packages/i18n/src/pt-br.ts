@@ -9,6 +9,7 @@ export default {
     language: "pt-BR",
     translation: {
         ...en.translation,
+        "common.material": "Aparência",
         "prompt.touchNavigation": "2 dedos: deslocar · pinça: zoom · 3 dedos: girar",
         "common.closeDocument": "Fechar documento",
         "ai.apiKey": "Chave de API",
