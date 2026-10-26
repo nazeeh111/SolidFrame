@@ -2,6 +2,7 @@
 // See LICENSE file in the project root for full license information.
 
 import {
+    Binding,
     Constants,
     I18n,
     type IApplication,
@@ -9,6 +10,7 @@ import {
     ObservableCollection,
     PubSub,
     type RecentDocumentDTO,
+    Result,
 } from "@chili3d/core";
 import { a, button, collection, div, img, span, svg } from "@chili3d/element";
 import style from "./home.module.css";
@@ -20,10 +22,7 @@ export class Home extends HTMLElement {
     constructor(readonly app: IApplication) {
         super();
         this.className = style.root;
-    }
-
-    private hasOpen(documentId: string) {
-        return [...this.app.documents].some((document) => document.id === documentId);
+        this.addEventListener("keydown", (event) => event.stopPropagation());
     }
 
     async render() {
@@ -179,7 +178,9 @@ export class Home extends HTMLElement {
                             div({ className: style.sectionTitle, textContent: "Recent projects" }),
                             span({
                                 className: style.count,
-                                textContent: String(documents.length).padStart(2, "0"),
+                                textContent: new Binding(documents, "length", {
+                                    convert: (length: number) => Result.ok(String(length).padStart(2, "0")),
+                                }),
                             }),
                         ),
                         this.documentCollection(documents),
@@ -210,27 +211,37 @@ export class Home extends HTMLElement {
     }
 
     private documentCollection(documents: ObservableCollection<RecentDocumentDTO>) {
-        if (documents.length === 0) {
-            return div({
+        return div(
+            collection({
+                className: style.documents,
+                sources: documents,
+                template: (item) => this.recentDocument(item, documents),
+            }),
+            div({
                 className: style.empty,
                 textContent: new Localize("home.recent.empty"),
-            });
-        }
-        return collection({
-            className: style.documents,
-            sources: documents,
-            template: (item) => this.recentDocument(item, documents),
-        });
+                style: {
+                    display: new Binding(documents, "length", {
+                        convert: (length: number) => Result.ok(length === 0 ? "block" : "none"),
+                    }),
+                },
+            }),
+        );
     }
 
     private recentDocument(item: RecentDocumentDTO, documents: ObservableCollection<RecentDocumentDTO>) {
         return div(
-            {
-                className: style.document,
-                onclick: () => this.handleDocumentClick(item),
-            },
-            img({ className: style.img, src: item.image }),
-            this.documentDescription(item),
+            { className: style.document },
+            button(
+                {
+                    className: style.openDocument,
+                    type: "button",
+                    ariaLabel: item.name,
+                    onclick: () => this.handleDocumentClick(item),
+                },
+                img({ className: style.img, src: item.image, alt: "" }),
+                this.documentDescription(item),
+            ),
             this.deleteIcon(item, documents),
         );
     }
@@ -247,24 +258,30 @@ export class Home extends HTMLElement {
     }
 
     private deleteIcon(item: RecentDocumentDTO, documents: ObservableCollection<RecentDocumentDTO>) {
-        return svg({
-            className: style.delete,
-            icon: "icon-times",
-            onclick: async (e) => {
-                e.stopPropagation();
-                if (window.confirm(I18n.translate("prompt.deleteDocument{0}", item.name))) {
-                    await Promise.all([
-                        this.app.storage.delete(Constants.DBName, Constants.DocumentTable, item.id),
-                        this.app.storage.delete(Constants.DBName, Constants.RecentTable, item.id),
-                    ]);
-                    documents.remove(item);
-                }
+        return button(
+            {
+                className: style.delete,
+                type: "button",
+                title: new Localize("common.delete"),
+                onclick: async (e) => {
+                    e.stopPropagation();
+                    if (window.confirm(I18n.translate("prompt.deleteDocument{0}", item.name))) {
+                        await Promise.all([
+                            this.app.storage.delete(Constants.DBName, Constants.DocumentTable, item.id),
+                            this.app.storage.delete(Constants.DBName, Constants.RecentTable, item.id),
+                        ]);
+                        documents.remove(item);
+                    }
+                },
             },
-        });
+            svg({ icon: "icon-times" }),
+        );
     }
 
     private handleDocumentClick(item: RecentDocumentDTO) {
-        if (this.hasOpen(item.id)) {
+        const existingView = this.app.views.find((view) => view.document.id === item.id);
+        if (existingView) {
+            this.app.activeView = existingView;
             PubSub.default.pub("displayHome", false);
         } else {
             PubSub.default.pub(

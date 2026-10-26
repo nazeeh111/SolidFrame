@@ -325,11 +325,12 @@ describe("PropertyView", () => {
     });
 
     describe("handleActiveViewChanged", () => {
-        test("should ignore an undefined view", () => {
+        test("should clear stale properties when the last view closes", () => {
             const pv = new PropertyView({ className: "test-panel" });
             const handler = pubSubRecorder.handlers.get("activeViewChanged");
             expect(handler).toBeDefined();
 
+            mustQuery(pv, ".pv-panel").append(document.createElement("input"));
             handler!(undefined);
 
             expect(mustQuery(pv, ".pv-panel").childElementCount).toBe(0);

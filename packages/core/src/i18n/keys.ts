@@ -225,6 +225,11 @@ export const I18N_KEYS = [
     "common.expression",
     "common.location",
     "common.material",
+    "common.close",
+    "material.add",
+    "material.deleteUnused",
+    "material.liveEdits",
+
     "common.matrix",
     "common.more",
     "common.name",

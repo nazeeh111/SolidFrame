@@ -26,6 +26,10 @@ export class Permanent {
         document.body.appendChild(dialog);
         dialog.showModal();
 
-        action().finally(() => dialog.remove());
+        try {
+            await action();
+        } finally {
+            dialog.remove();
+        }
     }
 }

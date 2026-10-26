@@ -3,6 +3,7 @@
 
 import {
     Binding,
+    type I18nKeys,
     type IConverter,
     Localize,
     type Material,
@@ -29,18 +30,36 @@ class ActiveStyleConverter implements IConverter<Material> {
 export class MaterialEditor extends HTMLElement {
     private readonly editingControl: HTMLElement;
     private readonly colorConverter = new ColorConverter();
+    private deleteButton?: HTMLButtonElement;
 
     constructor(readonly dataContent: MaterialDataContent) {
         super();
         this.editingControl = div({ className: style.properties });
         this.initEditingControl(dataContent.editingMaterial);
         this.append(this.createEditorUI());
+        this.updateDeleteButton();
+        this.addEventListener("keydown", (event) => {
+            const documentShortcut =
+                (event.ctrlKey || event.metaKey) && ["z", "y", "s"].includes(event.key.toLowerCase());
+            if (!documentShortcut) event.stopPropagation();
+        });
+        this.addEventListener(
+            "keydown",
+            (event) => {
+                if (event.key !== "Escape") return;
+                event.preventDefault();
+                event.stopPropagation();
+                this.remove();
+            },
+            true,
+        );
     }
 
     private createEditorUI() {
         return div(
             { className: style.root },
             this.titleSection(),
+            div({ className: style.hint, textContent: new Localize("material.liveEdits") }),
             this.materialsCollection(),
             this.editingControl,
             this.buttons(),
@@ -48,18 +67,35 @@ export class MaterialEditor extends HTMLElement {
     }
 
     private titleSection() {
+        this.deleteButton = this.iconButton("icon-trash", "material.deleteUnused", () => {
+            this.dataContent.deleteMaterial();
+        });
         return div(
             { className: style.title },
             span({ textContent: new Localize("common.material") }),
-            this.iconButton("icon-plus", () => this.dataContent.addMaterial()),
-            this.iconButton("icon-clone", () => this.dataContent.copyMaterial()),
-            this.iconButton("icon-trash", () => this.dataContent.deleteMaterial()),
+            this.iconButton("icon-plus", "material.add", () => this.dataContent.addMaterial()),
+            this.iconButton("icon-clone", "common.clone", () => this.dataContent.copyMaterial()),
+            this.deleteButton,
         );
     }
 
-    private iconButton(icon: string, onclick: () => void) {
-        return svg({ icon, onclick });
+    private iconButton(icon: string, title: I18nKeys, onclick: () => void) {
+        return button({ type: "button", title: new Localize(title), onclick }, svg({ icon }));
     }
+
+    private updateDeleteButton() {
+        if (this.deleteButton) this.deleteButton.disabled = !this.dataContent.canDeleteMaterial();
+    }
+
+    private readonly handleMaterialsChanged = () => {
+        const materials = this.dataContent.document.modelManager.materials;
+        if (!materials.contains(this.dataContent.editingMaterial)) {
+            const fallback = materials.at(0);
+            if (fallback) this.dataContent.editingMaterial = fallback;
+            else this.remove();
+        }
+        this.updateDeleteButton();
+    };
 
     private materialsCollection() {
         return collection({
@@ -70,7 +106,8 @@ export class MaterialEditor extends HTMLElement {
     }
 
     private material(material: Material) {
-        return span({
+        return button({
+            type: "button",
             className: new Binding(this.dataContent, "editingMaterial", new ActiveStyleConverter(material)),
             title: new Binding(material, "name"),
             style: {
@@ -100,7 +137,7 @@ export class MaterialEditor extends HTMLElement {
                 },
             }),
             button({
-                textContent: new Localize("common.cancel"),
+                textContent: new Localize("common.close"),
                 onclick: () => this.remove(),
             }),
         );
@@ -108,11 +145,13 @@ export class MaterialEditor extends HTMLElement {
 
     connectedCallback() {
         this.dataContent.onPropertyChanged(this._onEditingMaterialChanged);
+        this.dataContent.document.modelManager.materials.onCollectionChanged(this.handleMaterialsChanged);
         PubSub.default.sub("showProperties", this._handleShowProperty);
     }
 
     disconnectedCallback() {
         this.dataContent.removePropertyChanged(this._onEditingMaterialChanged);
+        this.dataContent.document.modelManager.materials.removeCollectionChanged(this.handleMaterialsChanged);
         PubSub.default.remove("showProperties", this._handleShowProperty);
     }
 
@@ -122,8 +161,8 @@ export class MaterialEditor extends HTMLElement {
 
     private readonly _onEditingMaterialChanged = (property: keyof MaterialDataContent) => {
         if (property !== "editingMaterial") return;
-        this.editingControl.firstChild?.remove();
         this.initEditingControl(this.dataContent.editingMaterial);
+        this.updateDeleteButton();
     };
 
     private initEditingControl(material: Material) {
@@ -133,14 +172,15 @@ export class MaterialEditor extends HTMLElement {
             return (material as any)[p.name] instanceof Texture;
         };
 
-        const properties = PropertyUtils.getProperties(material);
+        const regular: Property[] = [];
+        const textures: Property[] = [];
+        for (const property of PropertyUtils.getProperties(material)) {
+            (isTexture(property) ? textures : regular).push(property);
+        }
         this.editingControl.append(
-            ...properties
-                .filter((x) => !isTexture(x))
-                .map((x) => propertyControl(this.dataContent.document, [material], x)),
-            ...properties
-                .filter(isTexture)
-                .map((x) => propertyControl(this.dataContent.document, [material], x)),
+            ...[...regular, ...textures].map((property) =>
+                propertyControl(this.dataContent.document, [material], property),
+            ),
         );
     }
 }

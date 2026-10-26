@@ -51,7 +51,7 @@ The production site is in `dist/`. Serve it through HTTP, rather than opening it
 ## Local storage and privacy
 
 - CAD calculations run in your browser. No cloud account is required.
-- Save uses the `solidframe-db` browser database; preferences use `solidframe-config`. These are separate from upstream Chili3D data on the same origin. Existing upstream data is not deleted or migrated; open a downloaded `.cd` file to transfer a project.
+- Save uses the `solidframe-db` browser database; preferences use `solidframe-config`. These are separate from upstream data on the same origin. Existing upstream data is not deleted or migrated; open a downloaded `.cd` file to transfer a project.
 - Browser storage is not a backup. Clearing site data or using private browsing may remove saved projects; another device/browser/origin does not share them. Keep downloaded native documents for durable backups.
 - Upstream Microsoft Clarity tracking and promotional media feeds have been removed from the active interface.
 - Startup `?plugin=` links are ignored. `?url=` and `?model=` accept supported model/document files over HTTP(S); they cannot load executable `.chiliplugin` files. Intentional plugin imports remain available, and imported plugin code must be trusted.

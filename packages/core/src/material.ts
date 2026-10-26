@@ -5,7 +5,7 @@ import type { IDocument } from "./document";
 import { HistoryObservable, Id } from "./foundation";
 import { XY } from "./math";
 import { property } from "./property";
-import { serializable, serialize } from "./serialize";
+import { Serializer, serializable, serialize } from "./serialize";
 
 export interface TextureOptions {
     document: IDocument;
@@ -138,14 +138,14 @@ export class Material extends HistoryObservable {
         this.setPrivateValue("color", options.color);
     }
 
-    clone(): Material {
-        const material = new Material({
-            document: this.document,
+    clone(): this {
+        const material = Serializer.deserializeObject(this.document, {
+            ...Serializer.serializeObject(this),
+            id: Id.generate(),
             name: `${this.name} clone`,
-            color: this.color,
-        });
-        material.setPrivateValue("map", this.map);
-
+        }) as this;
+        material.vertexColors = this.vertexColors;
+        material.transparent = this.transparent;
         return material;
     }
 }

@@ -349,7 +349,26 @@ a:focus-visible {
     font-size: 10px;
     color: var(--foreground-secondary-color);
 }
+.openDocument:focus-visible,
+.delete:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: -2px;
+}
+.openDocument {
+    display: block;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+}
 .delete {
+    display: grid;
+    place-items: center;
+    border: 0;
+    cursor: pointer;
     position: absolute;
     width: 13px;
     height: 13px;
@@ -358,6 +377,11 @@ a:focus-visible {
     padding: 5px;
     background: var(--panel-background-color);
     border-radius: 3px;
+}
+.delete svg {
+    width: 13px;
+    height: 13px;
+    pointer-events: none;
 }
 @media (max-width: 1080px) {
     .page {
