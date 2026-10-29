@@ -42,6 +42,8 @@ export class PropertyView extends HTMLElement {
         if (view) {
             const nodes = view.document.selection.getSelectedNodes();
             this.handleShowProperties(view.document, nodes);
+        } else {
+            this.removeProperties();
         }
     };
 

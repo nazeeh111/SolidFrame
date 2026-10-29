@@ -1,7 +1,7 @@
 // Part of the Chili3d Project, under the AGPL-3.0 License.
 // See LICENSE file in the project root for full license information.
 
-import { I18n, type IDocument, Material, Observable } from "@chili3d/core";
+import { I18n, type IDocument, type INode, Material, Observable, Transaction } from "@chili3d/core";
 
 let count = 1;
 
@@ -22,18 +22,33 @@ export class MaterialDataContent extends Observable {
         this.setPrivateValue("editingMaterial", editingMaterial);
     }
 
+    canDeleteMaterial(): boolean {
+        const manager = this.document.modelManager;
+        const id = this.editingMaterial.id;
+        const usesMaterial = (node: INode) => {
+            const reference = (node as INode & { materialId?: string | string[] }).materialId;
+            return Array.isArray(reference) ? reference.includes(id) : reference === id;
+        };
+        return (
+            manager.materials.length > 1 &&
+            !manager.findNode(usesMaterial) &&
+            !manager.components.items().some((component) => component.nodes.some(usesMaterial))
+        );
+    }
+
     deleteMaterial() {
-        if (this.document.modelManager.materials.length <= 1) return;
-        const tempMaterial = this.editingMaterial;
-        this.editingMaterial = this.document.modelManager.materials.find(
-            (m) => m.id !== this.editingMaterial.id,
-        )!;
-        this.callback(this.editingMaterial);
-        this.document.modelManager.materials.remove(tempMaterial);
+        if (!this.canDeleteMaterial()) return;
+        const material = this.editingMaterial;
+        const replacement = this.document.modelManager.materials.find((item) => item !== material);
+        if (!replacement) return;
+        this.editingMaterial = replacement;
+        Transaction.execute(this.document, "Delete appearance", () => {
+            this.document.modelManager.materials.remove(material);
+        });
     }
 
     addMaterial() {
-        this.document.modelManager.materials.push(
+        this.addAppearance(
             new Material({
                 document: this.document,
                 name: `${I18n.translate("common.material")} ${count++}`,
@@ -43,6 +58,13 @@ export class MaterialDataContent extends Observable {
     }
 
     copyMaterial() {
-        this.document.modelManager.materials.push(this.editingMaterial.clone());
+        this.addAppearance(this.editingMaterial.clone());
+    }
+
+    private addAppearance(material: Material) {
+        Transaction.execute(this.document, "Add appearance", () => {
+            this.document.modelManager.materials.push(material);
+        });
+        this.editingMaterial = material;
     }
 }

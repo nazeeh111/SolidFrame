@@ -168,10 +168,51 @@ describe("Material classes", () => {
                 expect(clone).toBeInstanceOf(Material);
                 expect(clone.name).toBe("Original clone");
                 expect(clone.color).toBe(0x123456);
-                expect(clone.map).toBe(texture);
+                expect(clone.map).not.toBe(texture);
+                clone.map.image = "clone-only.png";
+                expect(texture.image).toBe("");
                 expect(clone.id).not.toBe(material.id);
             });
         });
+    });
+
+    test.each([
+        PhongMaterial,
+        PhysicalMaterial,
+    ])("cloning %s preserves subtype, settings, and independent textures", (Type) => {
+        const source = new Type({ document, name: "Finish", color: 0x334455 });
+        source.opacity = 0.35;
+        source.vertexColors = true;
+        source.transparent = false;
+        source.map.image = "original.png";
+        source.map.repeat = new XY({ x: 2, y: 3 });
+        if (source instanceof PhysicalMaterial) {
+            source.metalness = 0.8;
+            source.roughness = 0.25;
+            source.normalMap.image = "normal.png";
+        } else {
+            source.shininess = 80;
+            source.specular = 0xabcdef;
+        }
+        const copy = source.clone();
+        expect(copy).toBeInstanceOf(Type);
+        expect(copy.id).not.toBe(source.id);
+        expect(copy.opacity).toBe(0.35);
+        expect(copy.vertexColors).toBe(true);
+        expect(copy.transparent).toBe(false);
+        expect(copy.map.repeat).toEqual(source.map.repeat);
+        expect(copy.map.repeat).not.toBe(source.map.repeat);
+        copy.map.image = "copy.png";
+        expect(source.map.image).toBe("original.png");
+        if (copy instanceof PhysicalMaterial) {
+            expect(copy.metalness).toBe(0.8);
+            expect(copy.roughness).toBe(0.25);
+            copy.normalMap.image = "copy-normal.png";
+            expect((source as PhysicalMaterial).normalMap.image).toBe("normal.png");
+        } else {
+            expect(copy.shininess).toBe(80);
+            expect(copy.specular).toBe(0xabcdef);
+        }
     });
 
     describe("PhongMaterial", () => {

@@ -14,6 +14,8 @@ rs.mock("../src/property/textureProperty.module.css", () => ({
     expander: "tx-expander",
     properties: "tx-properties",
     image: "tx-image",
+    preview: "tx-preview",
+    remove: "tx-remove",
 }));
 
 // basicPropertyControl is replaced with a recording stub — it has its own test
@@ -74,8 +76,8 @@ describe("TextureProperty", () => {
 
         test("should render the texture image and a remove icon", () => {
             const prop = new TextureProperty(createMockDocument(), display, createTexture());
-            mustQuery(prop, ".tx-image img");
-            mustQuery(prop, ".tx-image svg");
+            mustQuery(prop, ".tx-image .tx-preview");
+            mustQuery(prop, ".tx-image .tx-remove");
         });
     });
 
@@ -84,7 +86,7 @@ describe("TextureProperty", () => {
             readFileAsyncMock.mockImplementation(readLocalFileAsync);
             const texture = createTexture();
             const prop = new TextureProperty(createMockDocument(), display, texture);
-            const img = mustQuery(prop, ".tx-image img");
+            const img = mustQuery(prop, ".tx-image .tx-preview");
             const onclick = (img as unknown as { _onclick: () => Promise<void> })._onclick;
             const click = rs.spyOn(HTMLInputElement.prototype, "click").mockImplementation(function (
                 this: HTMLInputElement,
@@ -105,7 +107,7 @@ describe("TextureProperty", () => {
             readFileAsyncMock.mockResolvedValue(Result.err("could not read image"));
             const texture = createTexture();
             const prop = new TextureProperty(createMockDocument(), display, texture);
-            const img = mustQuery(prop, ".tx-image img");
+            const img = mustQuery(prop, ".tx-image .tx-preview");
             const onclick = (img as unknown as { _onclick: () => Promise<void> })._onclick;
 
             await expect(onclick()).resolves.toBeUndefined();
@@ -116,7 +118,7 @@ describe("TextureProperty", () => {
             readFileAsyncMock.mockResolvedValue(Result.ok([]));
             const texture = createTexture();
             const prop = new TextureProperty(createMockDocument(), display, texture);
-            const img = mustQuery(prop, ".tx-image img");
+            const img = mustQuery(prop, ".tx-image .tx-preview");
             const onclick = (img as unknown as { _onclick: () => Promise<void> })._onclick;
 
             await expect(onclick()).resolves.toBeUndefined();
@@ -127,7 +129,7 @@ describe("TextureProperty", () => {
             const texture = createTexture();
             const prop = new TextureProperty(createMockDocument(), display, texture);
 
-            const icon = mustQuery(prop, ".tx-image svg");
+            const icon = mustQuery(prop, ".tx-image .tx-remove");
             const onclick = (icon as unknown as { _onclick?: () => void })._onclick;
             expect(onclick).toBeDefined();
             onclick!();
@@ -142,7 +144,7 @@ describe("TextureProperty", () => {
             const texture = createTexture();
             const prop = new TextureProperty(createMockDocument(), display, texture);
 
-            const img = mustQuery(prop, ".tx-image img");
+            const img = mustQuery(prop, ".tx-image .tx-preview");
             const onclick = (img as unknown as { _onclick?: () => Promise<void> })._onclick;
             expect(onclick).toBeDefined();
             await onclick!();

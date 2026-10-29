@@ -15,9 +15,11 @@ export const readFileAsyncMock = rs.hoisted(() => rs.fn());
 
 rs.mock("@chili3d/core", () => {
     const actual = rs.hoisted(() => require("@chili3d/core"));
-    const { PathBindingMock } = rs.hoisted(() => require("./coreMocks"));
+    const { BindingMock, LocalizeMock, PathBindingMock } = rs.hoisted(() => require("./coreMocks"));
     return {
         ...actual,
+        Binding: BindingMock,
+        Localize: LocalizeMock,
         PathBinding: PathBindingMock,
         PropertyUtils: {
             getProperties: (_proto: unknown) => [
