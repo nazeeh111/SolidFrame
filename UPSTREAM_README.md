@@ -1,6 +1,6 @@
 # SolidFrame technical reference
 
-Architecture and C++ development notes for the retained CAD engine. [NOTICE](NOTICE) identifies the original source and modifications; applicable terms remain in [LICENSE](LICENSE) and [cpp/LICENSE-chili-wasm.txt](cpp/LICENSE-chili-wasm.txt).
+Architecture and C++ development notes for the retained CAD engine. Applicable terms remain in [LICENSE](LICENSE) and [cpp/LICENSE-chili-wasm.txt](cpp/LICENSE-chili-wasm.txt).
 
 ## Architecture
 

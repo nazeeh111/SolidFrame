@@ -80,4 +80,4 @@ npm run check
 
 ## License
 
-Application code is licensed under [AGPL-3.0](LICENSE); the C++/WASM component carries [its existing LGPL notice](cpp/LICENSE-chili-wasm.txt). Third-party dependencies retain their own licenses. The running app links to corresponding source and license notices from **About & licenses**. See the [technical reference](UPSTREAM_README.md) for architecture and C++ development details, and [NOTICE](NOTICE) for the retained engine’s source, copyright holders and SolidFrame modifications.
+Application code is licensed under [AGPL-3.0](LICENSE); the C++/WASM component carries [its existing LGPL notice](cpp/LICENSE-chili-wasm.txt). Third-party dependencies retain their own licenses. The running app links to corresponding source and license notices from **About & licenses**. See the [technical reference](UPSTREAM_README.md) for architecture and C++ development details.
