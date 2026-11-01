@@ -36,13 +36,13 @@
 .version {
     display: block;
     margin-top: 7px;
-    font-size: 8px;
+    font-size: 11px;
     letter-spacing: 1.4px;
     color: var(--foreground-secondary-color);
 }
 .navigationLabel,
 .eyebrow {
-    font-size: 10px;
+    font-size: 11px;
     letter-spacing: 1.5px;
     font-weight: 650;
     color: var(--primary-color);
@@ -61,7 +61,7 @@
     border: 1px solid var(--border-color);
     border-radius: 5px;
     font: inherit;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 550;
     cursor: pointer;
     background: transparent;
@@ -109,7 +109,7 @@ a:focus-visible {
     line-height: 1.7;
 }
 .sidebarNote span {
-    font-size: 9px;
+    font-size: 11px;
     letter-spacing: 1px;
     font-weight: 650;
 }
@@ -118,11 +118,23 @@ a:focus-visible {
     color: var(--foreground-secondary-color);
 }
 .settingsPanel {
+    padding: 19px 0;
+    border-top: 1px solid var(--border-color);
+    font-size: 13px;
+}
+.settingsPanel summary {
+    cursor: pointer;
+    padding: 5px 0;
+}
+.settingsPanel summary:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 3px;
+}
+.settingsFields {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    padding: 19px 0;
-    border-top: 1px solid var(--border-color);
+    padding-top: 16px;
 }
 .settingItem {
     display: flex;
@@ -131,7 +143,7 @@ a:focus-visible {
     gap: 10px;
     font-size: 11px;
 }
-.settingItem span {
+.settingItem label {
     color: var(--foreground-secondary-color);
 }
 .settingItem select {
@@ -145,7 +157,7 @@ a:focus-visible {
     gap: 16px;
     padding-top: 14px;
     border-top: 1px solid var(--border-color);
-    font-size: 10px;
+    font-size: 11px;
 }
 .links a {
     color: var(--foreground-secondary-color);
@@ -172,7 +184,7 @@ a:focus-visible {
     padding-bottom: 24px;
     border-bottom: 1px solid var(--border-color);
     font:
-        9px / 1.5 ui-monospace,
+        11px / 1.5 ui-monospace,
         monospace;
     letter-spacing: 1.2px;
 }
@@ -199,7 +211,7 @@ a:focus-visible {
 .subtitle {
     max-width: 450px;
     color: var(--foreground-secondary-color);
-    font-size: 13px;
+    font-size: 15px;
     line-height: 1.85;
 }
 .heroActions {
@@ -221,7 +233,7 @@ a:focus-visible {
 .specimenCaption {
     margin: 0 20px;
     font:
-        8px / 1.5 ui-monospace,
+        11px / 1.5 ui-monospace,
         monospace;
     letter-spacing: 1px;
 }
@@ -237,7 +249,7 @@ a:focus-visible {
     border-top: 1px solid var(--border-color);
     border-bottom: 1px solid var(--border-color);
     font:
-        9px / 1.5 ui-monospace,
+        11px / 1.5 ui-monospace,
         monospace;
     letter-spacing: 1px;
 }
@@ -272,7 +284,7 @@ a:focus-visible {
     border-radius: 5px;
     padding: 38px 25px;
     line-height: 1.8;
-    font-size: 12px;
+    font-size: 14px;
     color: var(--foreground-secondary-color);
 }
 .sample {
@@ -290,7 +302,7 @@ a:focus-visible {
 .sampleDescription {
     color: var(--foreground-secondary-color);
     line-height: 1.75;
-    font-size: 12px;
+    font-size: 14px;
     margin-bottom: 20px;
 }
 .sample .button {
@@ -298,7 +310,7 @@ a:focus-visible {
 }
 .sampleFoot {
     font:
-        9px / 1.5 ui-monospace,
+        11px / 1.5 ui-monospace,
         monospace;
     color: var(--foreground-secondary-color);
     margin-top: 14px;
@@ -307,7 +319,7 @@ a:focus-visible {
     margin-top: 32px;
     padding-top: 18px;
     border-top: 1px solid var(--border-color);
-    font-size: 10px;
+    font-size: 11px;
     line-height: 1.5;
 }
 .documents {
@@ -339,14 +351,14 @@ a:focus-visible {
     gap: 6px;
 }
 .title {
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 600;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 .date {
-    font-size: 10px;
+    font-size: 11px;
     color: var(--foreground-secondary-color);
 }
 .openDocument:focus-visible,
@@ -421,6 +433,9 @@ a:focus-visible {
         flex-direction: column;
     }
     .left {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 8px;
         flex-basis: auto;
         flex-shrink: 0;
         padding: 20px;
@@ -428,11 +443,26 @@ a:focus-visible {
         border-bottom: 1px solid var(--border-color);
     }
     .logo {
-        margin-bottom: 20px;
+        grid-column: 1 / -1;
+        margin-bottom: 12px;
+    }
+    .navigationLabel {
+        display: none;
+    }
+    .left > .button {
+        min-height: 48px;
+        padding: 10px;
+        font-size: 13px;
+    }
+    .sidebarNote,
+    .settingsPanel,
+    .links,
+    .back {
+        grid-column: 1 / -1;
     }
     .sidebarNote {
-        margin-top: 8px;
-        padding: 12px 0;
+        margin-top: 4px;
+        padding: 10px 0;
     }
     .settingsPanel {
         padding: 14px 0;
@@ -451,7 +481,8 @@ a:focus-visible {
     .welcome {
         font-size: 35px;
     }
+    .pageTop,
     .featureStrip {
-        font-size: 8px;
+        display: none;
     }
 }

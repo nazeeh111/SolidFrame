@@ -12,7 +12,7 @@ import {
     type RecentDocumentDTO,
     Result,
 } from "@chili3d/core";
-import { a, button, collection, div, img, span, svg } from "@chili3d/element";
+import { a, button, collection, createElement, div, img, span, svg } from "@chili3d/element";
 import style from "./home.module.css";
 import { LanguageSelector } from "./languageSelector";
 import { Navigation3DSelector } from "./navigation3DSelector";
@@ -99,22 +99,35 @@ export class Home extends HTMLElement {
     }
 
     private settings() {
-        return div(
+        return createElement("details")(
             { className: style.settingsPanel },
+            createElement("summary")({ textContent: "Preferences" }),
             div(
-                { className: style.settingItem },
-                span({ textContent: new Localize("common.language") }),
-                LanguageSelector({}),
-            ),
-            div(
-                { className: style.settingItem },
-                span({ textContent: new Localize("common.theme") }),
-                ThemeSelector({}),
-            ),
-            div(
-                { className: style.settingItem },
-                span({ textContent: new Localize("common.3DNavigation") }),
-                Navigation3DSelector({}),
+                { className: style.settingsFields },
+                div(
+                    { className: style.settingItem },
+                    createElement("label")({
+                        htmlFor: "home-settings-language",
+                        textContent: new Localize("common.language"),
+                    }),
+                    LanguageSelector({ id: "home-settings-language" }),
+                ),
+                div(
+                    { className: style.settingItem },
+                    createElement("label")({
+                        htmlFor: "home-settings-theme",
+                        textContent: new Localize("common.theme"),
+                    }),
+                    ThemeSelector({ id: "home-settings-theme" }),
+                ),
+                div(
+                    { className: style.settingItem },
+                    createElement("label")({
+                        htmlFor: "home-settings-navigation",
+                        textContent: new Localize("common.3DNavigation"),
+                    }),
+                    Navigation3DSelector({ id: "home-settings-navigation" }),
+                ),
             ),
         );
     }
