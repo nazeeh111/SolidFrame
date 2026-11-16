@@ -5,8 +5,8 @@
 
 .header {
     margin: 2px 18px;
-    font-size: 1.15rem;
-    font-weight: bold;
+    font-size: 13px;
+    font-weight: 650;
     flex: 0;
 }
 
@@ -20,6 +20,14 @@
     border-top: 2px solid transparent;
     border-bottom: 2px solid transparent;
     background-color: var(--panel-background-color);
+}
+
+.empty {
+    max-width: 26ch;
+    padding: 12px 8px;
+    color: var(--foreground-secondary-color);
+    font-size: 12px;
+    line-height: 1.5;
 }
 
 .properties {

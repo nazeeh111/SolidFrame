@@ -170,16 +170,30 @@ export class ThreeView extends Observable implements IView {
         this._resizeObserver.disconnect();
     }
 
-    close(): void {
+    async close(): Promise<void> {
         if (this._isClosed) return;
-        this._isClosed = true;
-        this.document.application.views.remove(this);
-        const otherView = this.document.application.views.find((x) => x.document === this.document);
+        const otherView = this.document.application.views.find(
+            (view) => view !== this && view.document === this.document,
+        );
         if (!otherView) {
-            this.document.close();
-        } else if (this.document.application.activeView === this) {
-            this.document.application.activeView = otherView;
+            try {
+                const closed = await this.document.close();
+                if (closed && !this._isClosed) this.finishClose();
+            } catch (error) {
+                PubSub.default.pub("displayError", error instanceof Error ? error.message : String(error));
+            }
+            return;
         }
+        this.document.application.views.remove(this);
+        if (this.document.application.activeView === this) this.document.application.activeView = otherView;
+        this.finishClose();
+    }
+
+    private finishClose() {
+        if (this.document.application.views.find((view) => view === this)) {
+            this.document.application.views.remove(this);
+        }
+        this._isClosed = true;
         this.dispose();
         PubSub.default.pub("viewClosed", this);
     }

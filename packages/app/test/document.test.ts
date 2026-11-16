@@ -2,6 +2,7 @@
 // See LICENSE file in the project root for full license information.
 
 import {
+    Constants,
     History,
     type IApplication,
     InternalClassName,
@@ -108,15 +109,23 @@ describe("Document", () => {
 
     describe("save", () => {
         test("should save document to storage", async () => {
-            let saved = false;
-            const originalPut = mockApp.storage.put;
-            mockApp.storage.put = async () => {
-                saved = true;
-                return true;
-            };
+            const save = rs.spyOn(mockApp.storage, "putMany").mockResolvedValue(undefined);
             await document.save();
-            expect(saved).toBe(true);
-            mockApp.storage.put = originalPut;
+            expect(save).toHaveBeenCalledTimes(1);
+            expect(save.mock.calls[0][1]).toEqual([
+                { table: Constants.DocumentTable, id: document.id, value: document.serialize() },
+                {
+                    table: Constants.RecentTable,
+                    id: document.id,
+                    value: {
+                        id: document.id,
+                        name: document.name,
+                        date: expect.any(Number),
+                        image: undefined,
+                    },
+                },
+            ]);
+            save.mockRestore();
         });
     });
 

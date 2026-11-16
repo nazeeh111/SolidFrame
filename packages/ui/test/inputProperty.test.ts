@@ -51,6 +51,14 @@ describe("InputProperty", () => {
             expect(inputEl).not.toBeNull();
         });
 
+        test("associates the visible property name with its input", () => {
+            const prop = new InputProperty(createMockDocument(), [{ value: 42 }], valueProp);
+            const label = mustQuery<HTMLLabelElement>(prop, "label");
+            const field = mustQuery<HTMLInputElement>(prop, "input");
+            expect(label.control).toBe(field);
+            expect(label.querySelector("span")).not.toBeNull();
+        });
+
         test("should contain a span for property name", () => {
             const doc = createMockDocument();
             const obj = { value: 42 };

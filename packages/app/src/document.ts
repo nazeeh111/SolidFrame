@@ -5,7 +5,6 @@ import {
     type Act,
     Constants,
     History,
-    I18n,
     type IApplication,
     type IDocument,
     Id,
@@ -36,6 +35,14 @@ export class Document extends Observable implements IDocument {
     /** Document-wide parameters shared by every body and sketch. */
     readonly variables: IVariableTable;
     userData: Record<string, unknown> = {};
+    private pendingSave: Promise<void> = Promise.resolve();
+    private readonly inFlightSaves = new Set<Promise<void>>();
+    private pendingClose?: Promise<boolean>;
+    private closeCommitted = false;
+
+    get isCloseInProgress(): boolean {
+        return this.closeCommitted;
+    }
 
     static readonly version = __DOCUMENT_VERSION__;
 
@@ -91,30 +98,100 @@ export class Document extends Observable implements IDocument {
         this.acts.clear();
     }
 
-    async save() {
-        const data = this.serialize();
-        await this.application.storage.put(Constants.DBName, Constants.DocumentTable, this.id, data);
-        const image = this.application.activeView?.toImage();
-        await this.application.storage.put(Constants.DBName, Constants.RecentTable, this.id, {
-            id: this.id,
-            name: this.name,
-            date: Date.now(),
-            image,
-        });
+    async save(): Promise<void> {
+        if (this.closeCommitted || this._isDisposed) throw new Error("Document is closing or closed");
+        return this.enqueueSave();
     }
 
-    async close() {
-        if (window.confirm(I18n.translate("prompt.saveDocument{0}", this.name))) {
-            await this.save();
-        }
+    private async enqueueSave(): Promise<void> {
+        // serialize() can retain nested user data; edits must not change a queued snapshot.
+        const data = structuredClone(this.serialize());
+        const activeView = this.application.activeView;
+        const view =
+            activeView?.document === this
+                ? activeView
+                : this.application.views.find((candidate) => candidate.document === this);
+        const recent = {
+            id: this.id,
+            name: data["name"],
+            date: Date.now(),
+            image: view?.toImage(),
+        };
+        const saved = this.pendingSave.then(() =>
+            this.application.storage.putMany(Constants.DBName, [
+                { table: Constants.DocumentTable, id: this.id, value: data },
+                { table: Constants.RecentTable, id: this.id, value: recent },
+            ]),
+        );
+        this.inFlightSaves.add(saved);
+        void saved.then(
+            () => this.inFlightSaves.delete(saved),
+            () => this.inFlightSaves.delete(saved),
+        );
+        this.pendingSave = saved.catch(() => {
+            // Release the queue after failure; the caller still receives the rejected save.
+        });
+        return saved;
+    }
 
+    close(): Promise<boolean> {
+        if (this.pendingClose) return this.pendingClose;
+        if (this._isDisposed) return Promise.resolve(false);
+        const confirm = this.application.mainWindow?.confirmDocumentClose;
+        if (!confirm) return Promise.resolve(false);
+        const close = confirm.call(
+            this.application.mainWindow,
+            this.name,
+            async () => {
+                this.closeCommitted = true;
+                try {
+                    await this.settleCommands();
+                    await this.enqueueSave();
+                    this.finishClose();
+                } catch (error) {
+                    this.closeCommitted = false;
+                    throw error;
+                }
+            },
+            async () => {
+                this.closeCommitted = true;
+                try {
+                    await this.settleCommands();
+                    await Promise.all([...this.inFlightSaves]);
+                    this.finishClose();
+                } catch (error) {
+                    this.closeCommitted = false;
+                    throw error;
+                }
+            },
+        );
+        this.pendingClose = close;
+        void close.then(
+            () => {
+                this.pendingClose = undefined;
+            },
+            () => {
+                this.pendingClose = undefined;
+            },
+        );
+        return close;
+    }
+
+    private async settleCommands() {
+        for (const service of this.application.services) {
+            await service.settleDocumentCommand?.(this);
+        }
+    }
+
+    private finishClose() {
         const views = this.application.views.filter((x) => x.document === this);
         this.application.views.remove(...views);
-        this.application.activeView = this.application.views.at(0);
+        for (const view of views) view.dispose();
+        if (this.application.activeView?.document === this) {
+            this.application.activeView = this.application.views.at(0);
+        }
         this.application.documents.delete(this);
-
         PubSub.default.pub("documentClosed", this);
-
         Logger.info(`document: ${this.name} closed`);
         this.dispose();
     }

@@ -53,6 +53,9 @@ describe("i18n locales", () => {
     });
 
     describe("pt-br extends en", () => {
+        test("close dialog cancel is translated", () => {
+            expect(ptBr.translation["common.cancel"]).toBe("Cancelar");
+        });
         test("pt-br should contain en keys via spread", () => {
             // pt-br uses ...en.translation, so it has all en keys
             const enKeys = new Set(Object.keys(en.translation));

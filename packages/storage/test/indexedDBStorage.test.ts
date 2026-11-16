@@ -118,16 +118,21 @@ describe("IndexedDBStorage", () => {
         });
     });
 
-    describe.each(["put", "delete"] as const)("%s transaction completion", (operation) => {
+    describe.each(["put", "delete", "putMany"] as const)("%s transaction completion", (operation) => {
         beforeEach(async () => {
-            await storage.createDBIfNeeded(DB, [TABLE]);
+            await storage.createDBIfNeeded(DB, [TABLE, "recents"]);
             fake.databases.get(DB)!.autoCompleteWrites = false;
         });
 
-        const write = (operation: "put" | "delete") =>
-            operation === "put"
-                ? storage.put(DB, TABLE, "id1", { name: "alpha" })
-                : storage.delete(DB, TABLE, "id1");
+        const write = (operation: "put" | "delete" | "putMany") =>
+            operation === "putMany"
+                ? storage.putMany(DB, [
+                      { table: TABLE, id: "id1", value: { name: "alpha" } },
+                      { table: "recents", id: "id1", value: { name: "alpha" } },
+                  ])
+                : operation === "put"
+                  ? storage.put(DB, TABLE, "id1", { name: "alpha" })
+                  : storage.delete(DB, TABLE, "id1");
 
         test("waits for commit after request success and keeps the connection open", async () => {
             let settled = false;
@@ -143,7 +148,7 @@ describe("IndexedDBStorage", () => {
             expect(db.lastTransaction).toBeDefined();
             expect(db.lastTransaction!.requestSucceeded).toBe(true);
             db.lastTransaction!.complete();
-            await expect(pending).resolves.toBe(true);
+            await expect(pending).resolves.toBe(operation === "putMany" ? undefined : true);
             expect(db.closed).toBe(true);
         });
 
@@ -189,7 +194,10 @@ describe("IndexedDBStorage", () => {
                     const put = store.put.bind(store);
                     store.put = (value, key) => {
                         const request = put(value, key);
-                        request.succeed = () => request.fail(error);
+                        request.succeed = () => {
+                            request.fail(error);
+                            queueMicrotask(() => transaction.abort(error));
+                        };
                         return request;
                     };
                 } else {
@@ -207,7 +215,11 @@ describe("IndexedDBStorage", () => {
                     operation === "put"
                         ? storage.put(DB, TABLE, "id1", { a: 1 })
                         : storage.delete(DB, TABLE, "id1");
-                await expect(pending).rejects.toHaveProperty("target.error", error);
+                if (operation === "put") {
+                    await expect(pending).rejects.toBe(error);
+                } else {
+                    await expect(pending).rejects.toHaveProperty("target.error", error);
+                }
                 expect(db.closed).toBe(true);
             } finally {
                 transactionSpy.mockRestore();

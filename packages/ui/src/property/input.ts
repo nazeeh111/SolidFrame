@@ -15,8 +15,8 @@ import {
     XYZ,
 } from "@chili3d/core";
 import {
-    div,
     input,
+    label,
     NumberConverter,
     StringConverter,
     span,
@@ -67,7 +67,7 @@ export class InputProperty extends PropertyBase {
         this.converter = property.converter ?? this.getConverter();
         const arrayConverter = new ArrayValueConverter(objects, property, this.converter);
         this.append(
-            div(
+            label(
                 { className: commonStyle.panel },
                 span({ className: commonStyle.propertyName, textContent: new Localize(property.display) }),
                 input({

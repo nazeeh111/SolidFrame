@@ -1,7 +1,7 @@
 // Part of the Chili3d Project, under the AGPL-3.0 License.
 // See LICENSE file in the project root for full license information.
 
-import { type IStorage, Logger } from "@chili3d/core";
+import { type IStorage, Logger, type StorageWrite } from "@chili3d/core";
 
 export class IndexedDBStorage implements IStorage {
     async createDBIfNeeded(database: string, tables: string[]): Promise<void> {
@@ -53,10 +53,18 @@ export class IndexedDBStorage implements IStorage {
     }
 
     async put(database: string, table: string, id: string, value: any): Promise<boolean> {
+        await this.putMany(database, [{ table, id, value }]);
+        return true;
+    }
+
+    async putMany(database: string, records: readonly StorageWrite[]): Promise<void> {
+        if (records.length === 0) return;
         const db = await this.open(database);
-        return Promise.try(IndexedDBStorage.put, db, table, id, value).finally(() => {
+        try {
+            await IndexedDBStorage.putMany(db, records);
+        } finally {
             db.close();
-        });
+        }
     }
 
     async delete(database: string, table: string, id: string): Promise<boolean> {
@@ -163,23 +171,30 @@ export class IndexedDBStorage implements IStorage {
         });
     }
 
-    private static put(db: IDBDatabase, storeName: string, key: IDBValidKey, value: any): Promise<boolean> {
-        const transaction = db.transaction([storeName], "readwrite");
-        const request = transaction.objectStore(storeName).put(value, key);
+    private static putMany(db: IDBDatabase, records: readonly StorageWrite[]): Promise<void> {
+        const transaction = db.transaction([...new Set(records.map((record) => record.table))], "readwrite");
         return new Promise((resolve, reject) => {
+            let failure: unknown;
             // Request success precedes commit and can still be followed by an abort.
             transaction.oncomplete = () => {
-                Logger.info(`${storeName} store put object success`);
-                resolve(true);
+                resolve();
             };
             transaction.onabort = () => {
-                Logger.error(`${storeName} store write transaction aborted`);
-                reject(transaction.error ?? new DOMException("Write transaction aborted", "AbortError"));
+                reject(
+                    failure ??
+                        transaction.error ??
+                        new DOMException("Write transaction aborted", "AbortError"),
+                );
             };
-            request.onerror = (e) => {
-                Logger.error(`${storeName} store put object error`);
-                reject(e);
-            };
+            try {
+                for (const record of records) {
+                    transaction.objectStore(record.table).put(record.value, record.id);
+                }
+            } catch (error) {
+                // A synchronous enqueue error does not abort earlier requests automatically.
+                failure = error;
+                transaction.abort();
+            }
         });
     }
 }

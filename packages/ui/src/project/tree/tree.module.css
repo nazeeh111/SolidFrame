@@ -3,7 +3,8 @@
 }
 
 .selected {
-    background-color: var(--hover-background-color);
+    background-color: var(--tool-active);
+    box-shadow: inset 3px 0 var(--tool-accent);
 }
 
 .current {

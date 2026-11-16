@@ -78,7 +78,7 @@ export class SelectMeasure extends CancelableCommand {
         };
         this.#sumUI.container.append(this.#sumUI.header, this.#sumUI.list, h2(this.#sumUI.value));
 
-        this.application.activeView?.dom?.append(this.#sumUI.container);
+        this.view?.dom?.append(this.#sumUI.container);
     }
 
     private addSumItem(item: number) {
@@ -152,7 +152,7 @@ export class SelectMeasure extends CancelableCommand {
 
         const id = this.document.visual.context.displayMesh([mesh]);
         this.#disposeSet.add(
-            this.application.activeView!.htmlText(length.toFixed(2), start.add(end).multiply(0.5), {
+            this.view!.htmlText(length.toFixed(2), start.add(end).multiply(0.5), {
                 hideDelete: true,
                 onDispose: () => {
                     this.document.visual.context.removeMesh(id);
@@ -174,7 +174,7 @@ export class SelectMeasure extends CancelableCommand {
         const center = this.wireCenter(mesh.position);
         const id = this.document.visual.context.displayMesh([mesh]);
         this.#disposeSet.add(
-            this.application.activeView!.htmlText(area.toFixed(2), center, {
+            this.view!.htmlText(area.toFixed(2), center, {
                 hideDelete: true,
                 onDispose: () => {
                     this.document.visual.context.removeMesh(id);
@@ -208,7 +208,7 @@ export class SelectMeasure extends CancelableCommand {
         this.addSumItem(volume);
         const id = this.document.visual.context.displayMesh([mesh]);
         this.#disposeSet.add(
-            this.application.activeView!.htmlText(volume.toFixed(2), transform.ofPoint(center), {
+            this.view!.htmlText(volume.toFixed(2), transform.ofPoint(center), {
                 hideDelete: true,
                 onDispose: () => {
                     this.document.visual.context.removeMesh(id);

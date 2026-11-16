@@ -36,3 +36,16 @@ test("failed operations remove the loading dialog and propagate the error", asyn
     ).rejects.toBe(error);
     expect(document.querySelector("dialog")).toBeNull();
 });
+
+test("a modal presentation failure removes the dialog and rejects", async () => {
+    const original = HTMLDialogElement.prototype.showModal;
+    HTMLDialogElement.prototype.showModal = () => {
+        throw new Error("modal failed");
+    };
+    try {
+        await expect(Permanent.show(async () => {}, "common.confirm")).rejects.toThrow("modal failed");
+        expect(document.querySelector("dialog")).toBeNull();
+    } finally {
+        HTMLDialogElement.prototype.showModal = original;
+    }
+});

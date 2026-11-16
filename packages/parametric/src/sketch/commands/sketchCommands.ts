@@ -182,7 +182,7 @@ export class CreateSketch extends CancelableCommand {
     async executeAsync(): Promise<void> {
         SketchEditor.exit();
 
-        const document = this.application.activeView?.document;
+        const document = this.document;
         if (document === undefined) {
             PubSub.default.pub("displayError", "No active view");
             return;
@@ -208,7 +208,7 @@ export class EnterSketch extends CancelableCommand {
     async executeAsync(): Promise<void> {
         SketchEditor.exit();
 
-        const document = this.application.activeView?.document;
+        const document = this.document;
         if (document === undefined) {
             PubSub.default.pub("displayError", "No active view");
             return;

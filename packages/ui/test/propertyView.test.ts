@@ -17,6 +17,7 @@ rs.mock("../src/property/propertyView.module.css", () => ({
     root: "pv-root",
     panel: "pv-panel",
     header: "pv-header",
+    empty: "pv-empty",
     properties: "pv-properties",
 }));
 
@@ -130,7 +131,7 @@ describe("PropertyView", () => {
             expect(panel.childElementCount).toBe(1);
 
             handler!(doc, []);
-            expect(panel.childElementCount).toBe(0);
+            expect(panel.querySelector(".pv-empty")).not.toBeNull();
         });
 
         test("should render property controls for a Node", () => {
@@ -154,7 +155,7 @@ describe("PropertyView", () => {
 
             handler!(doc, []);
 
-            expect(mustQuery(pv, ".pv-panel").childElementCount).toBe(0);
+            expect(mustQuery(pv, ".pv-panel .pv-empty")).not.toBeNull();
         });
 
         test("should render a feature list for feature-list nodes", () => {
@@ -333,7 +334,7 @@ describe("PropertyView", () => {
             mustQuery(pv, ".pv-panel").append(document.createElement("input"));
             handler!(undefined);
 
-            expect(mustQuery(pv, ".pv-panel").childElementCount).toBe(0);
+            expect(mustQuery(pv, ".pv-panel .pv-empty")).not.toBeNull();
         });
 
         test("should show properties of the selected nodes of the new view", () => {

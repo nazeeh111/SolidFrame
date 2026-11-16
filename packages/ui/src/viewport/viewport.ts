@@ -31,6 +31,14 @@ class CameraConverter implements IConverter<CameraType> {
     }
 }
 
+class CameraPressedConverter implements IConverter<CameraType> {
+    constructor(readonly type: CameraType) {}
+
+    convert(value: CameraType): Result<string, string> {
+        return Result.ok(String(value === this.type));
+    }
+}
+
 class ViewModeConverter implements IConverter<ViewMode> {
     constructor(readonly mode: ViewMode) {}
 
@@ -108,33 +116,36 @@ export class Viewport extends HTMLElement {
     }
 
     private createActionControls() {
+        const action = (
+            icon: string,
+            title: "viewport.fitContent" | "viewport.zoomIn" | "viewport.zoomOut",
+            run: () => void,
+        ) =>
+            button(
+                {
+                    type: "button",
+                    title: new Localize(title),
+                    onkeydown: (event) => {
+                        if (event.key === "Enter" || event.key === " ") event.stopPropagation();
+                    },
+                    onclick: (event) => {
+                        event.stopPropagation();
+                        run();
+                        this.view.update();
+                    },
+                },
+                svg({ icon }),
+                span({ className: style.srOnly, textContent: new Localize(title) }),
+            );
         return div(
             { className: style.border },
-            svg({
-                icon: "icon-fitcontent",
-                title: new Localize("viewport.fitContent"),
-                onclick: async (e) => {
-                    e.stopPropagation();
-                    this.view.cameraController.fitContent();
-                    this.view.update();
-                },
-            }),
-            svg({
-                icon: "icon-zoomin",
-                title: new Localize("viewport.zoomIn"),
-                onclick: () => {
-                    this.view.cameraController.zoom(this.view.width / 2, this.view.height / 2, -5);
-                    this.view.update();
-                },
-            }),
-            svg({
-                icon: "icon-zoomout",
-                title: new Localize("viewport.zoomOut"),
-                onclick: () => {
-                    this.view.cameraController.zoom(this.view.width / 2, this.view.height / 2, 5);
-                    this.view.update();
-                },
-            }),
+            action("icon-fitcontent", "viewport.fitContent", () => this.view.cameraController.fitContent()),
+            action("icon-zoomin", "viewport.zoomIn", () =>
+                this.view.cameraController.zoom(this.view.width / 2, this.view.height / 2, -5),
+            ),
+            action("icon-zoomout", "viewport.zoomOut", () =>
+                this.view.cameraController.zoom(this.view.width / 2, this.view.height / 2, 5),
+            ),
         );
     }
 
@@ -210,6 +221,7 @@ export class Viewport extends HTMLElement {
     };
 
     private createCameraControl(cameraType: CameraType, icon: string) {
+        const name = new Localize(`viewport.${cameraType}`);
         return div(
             {
                 className: new Binding(
@@ -218,15 +230,27 @@ export class Viewport extends HTMLElement {
                     new CameraConverter(cameraType),
                 ),
             },
-            svg({
-                icon: icon,
-                title: new Localize(`viewport.${cameraType}`),
-                onclick: (e) => {
-                    e.stopPropagation();
-                    this.view.cameraController.cameraType = cameraType;
-                    this.view.update();
+            button(
+                {
+                    type: "button",
+                    title: name,
+                    onkeydown: (event) => {
+                        if (event.key === "Enter" || event.key === " ") event.stopPropagation();
+                    },
+                    ariaPressed: new Binding(
+                        this.view.cameraController,
+                        "cameraType",
+                        new CameraPressedConverter(cameraType),
+                    ),
+                    onclick: (event) => {
+                        event.stopPropagation();
+                        this.view.cameraController.cameraType = cameraType;
+                        this.view.update();
+                    },
                 },
-            }),
+                svg({ icon }),
+                span({ className: style.srOnly, textContent: new Localize(`viewport.${cameraType}`) }),
+            ),
         );
     }
 

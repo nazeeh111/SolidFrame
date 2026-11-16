@@ -70,12 +70,8 @@ export class CommandContext extends HTMLElement implements IDisposable {
         if (isCancelableCommand(this.command)) {
             this.closeIcon = div(
                 { className: style.cancelButton },
-                div(
-                    {
-                        className: style.selectionButton,
-                        onclick: () => (this.command as CancelableCommand).cancel(),
-                    },
-                    svg({ icon: "icon-cancel" }),
+                this.actionButton("common.cancel", "icon-cancel", () =>
+                    (this.command as CancelableCommand).cancel(),
                 ),
             );
             this.container.append(this.closeIcon);
@@ -96,17 +92,27 @@ export class CommandContext extends HTMLElement implements IDisposable {
                     textContent: new Localize("prompt.selectedCount"),
                 }),
             ),
-            div(
-                { className: style.selectionButton, onclick: () => controller.success() },
-                svg({ icon: "icon-confirm" }),
-            ),
-            div(
-                { className: style.selectionButton, onclick: () => controller.cancel() },
-                svg({ icon: "icon-cancel" }),
-            ),
+            this.actionButton("common.confirm", "icon-confirm", () => controller.success()),
+            this.actionButton("common.cancel", "icon-cancel", () => controller.cancel()),
         );
         this.container.append(this.selectionControlContainer);
     };
+
+    private actionButton(name: "common.confirm" | "common.cancel", icon: string, action: () => void) {
+        return button(
+            {
+                type: "button",
+                className: style.selectionButton,
+                title: new Localize(name),
+                onkeydown: (event) => {
+                    if (event.key === "Enter" || event.key === " ") event.stopPropagation();
+                },
+                onclick: action,
+            },
+            svg({ icon }),
+            span({ className: style.srOnly, textContent: new Localize(name) }),
+        );
+    }
 
     private countDom() {
         const countSpan = span({ className: style.selectionCount, textContent: "0" });

@@ -38,3 +38,22 @@ test("the sample contains editable solids that survive serialization and paramet
     expect(plate.shape.value.volume()).toBeCloseTo(initialVolume * 1.5, 6);
     nodes.forEach((node) => node.dispose());
 });
+
+test("opening the sample selects its base plate for editing", async () => {
+    const document = new TestDocument();
+    const { SelectionManager } = await import("../../../src/selectionManager");
+    const { SampleDocument } = await import("../../../src/commands/application/sampleDocument");
+    document.selection = new SelectionManager(document);
+    const app = {
+        newDocument: async () => document,
+        activeView: undefined,
+    } as unknown as import("@chili3d/core").IApplication;
+
+    await new SampleDocument().execute(app);
+
+    const selected = document.selection.getSelectedNodes();
+    expect(selected).toHaveLength(1);
+    expect(selected[0].name).toBe("01 · Base plate");
+    expect(selected[0].parent).not.toBeNull();
+    document.dispose();
+});

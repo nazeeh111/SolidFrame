@@ -55,6 +55,10 @@ dialog::backdrop {
         &:hover {
             background-color: var(--hover-background-color);
         }
+        &:focus-visible {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
         &:active {
             background-color: var(--primary-color);
             color: var(--title-checked);

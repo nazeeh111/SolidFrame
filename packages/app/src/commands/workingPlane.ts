@@ -102,7 +102,7 @@ export class FromSection extends MultistepCommand {
         const direction = curve.d1(parameter).vec.normalize()!;
         const xvec: XYZ = this.findXVec(direction);
         const plane = new Plane({ origin: point, normal: direction, xvec });
-        const view = this.application.activeView;
+        const view = this.view;
         if (!view) return;
         view.workplane = plane;
     }

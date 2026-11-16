@@ -6,7 +6,6 @@ import {
     I18n,
     type IApplication,
     type ICommand,
-    PubSub,
     readFileAsync,
     type Serialized,
 } from "@chili3d/core";
@@ -18,15 +17,19 @@ import {
 })
 export class OpenDocument implements ICommand {
     async execute(app: IApplication): Promise<void> {
-        PubSub.default.pub(
-            "showPermanent",
+        const progress = app.mainWindow?.showProgress;
+        if (!progress) throw new Error("Cannot open document: progress display is unavailable");
+        await progress.call(
+            app.mainWindow,
             async () => {
                 const files = await readFileAsync(".cd", false);
-                if (files.isOk) {
-                    const json: Serialized = JSON.parse(files.value[0].data);
-                    const document = await app.loadDocument(json);
-                    document?.application.activeView?.cameraController.fitContent();
+                if (!files.isOk) {
+                    if (files.error === "cancel") return;
+                    throw new Error(`Cannot read document: ${files.error}`);
                 }
+                const json: Serialized = JSON.parse(files.value[0].data);
+                const document = await app.loadDocument(json);
+                document?.application.activeView?.cameraController.fitContent();
             },
             "toast.excuting{0}",
             I18n.translate("command.doc.open"),

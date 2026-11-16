@@ -375,24 +375,32 @@ describe("ThreeView — resize", () => {
 // ============================================================================
 
 describe("ThreeView — close", () => {
-    test("close marks isClosed true", () => {
+    test("close marks isClosed true", async () => {
         const { view } = createTestView();
-        view.close();
+        await view.close();
         expect(view.isClosed).toBe(true);
     });
 
-    test("close removes view from application.views", () => {
+    test("close removes view from application.views", async () => {
         const doc = new TestDocument();
         const { view } = createTestView({ document: doc });
         expect(doc.application.views).toContain(view);
-        view.close();
+        await view.close();
         expect(doc.application.views).not.toContain(view);
     });
 
-    test("double close is a no-op", () => {
+    test("cancelling the document close keeps the last view intact", async () => {
+        const { view, doc } = createTestView();
+        rs.spyOn(doc, "close").mockResolvedValue(false);
+        await view.close();
+        expect(view.isClosed).toBe(false);
+        expect(doc.application.views).toContain(view);
+    });
+
+    test("double close is a no-op", async () => {
         const { view } = createTestView();
         view.close();
-        view.close();
+        await view.close();
         expect(view.isClosed).toBe(true);
     });
 });
@@ -768,7 +776,7 @@ describe("ThreeView — close with view switching", () => {
         expect(view1.isClosed).toBe(true);
     });
 
-    test("close does not switch activeView when no other view for same document", () => {
+    test("close does not switch activeView when no other view for same document", async () => {
         const doc = new TestDocument();
         const views = createViewsArray();
         (doc.application as any).views = views;
@@ -778,7 +786,7 @@ describe("ThreeView — close with view switching", () => {
         view.setDom(container.cloneNode() as HTMLElement);
         (doc.application as any).activeView = view;
 
-        view.close();
+        await view.close();
         expect(view.isClosed).toBe(true);
     });
 });

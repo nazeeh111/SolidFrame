@@ -56,6 +56,7 @@ const sharedApp = new Application({
     services: [],
     storage: {
         createDBIfNeeded: async () => {},
+        putMany: async () => {},
         get: async () => undefined,
         put: async () => true,
         delete: async () => true,

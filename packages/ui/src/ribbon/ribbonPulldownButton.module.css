@@ -5,9 +5,9 @@
     align-items: center;
     gap: 7px;
     padding: 5px 9px;
-    border: 1px solid var(--tool-border);
+    border: 1px solid transparent;
     border-radius: 3px;
-    background: var(--tool-background);
+    background: transparent;
     min-width: 96px;
     height: 34px;
     box-sizing: border-box;
@@ -45,6 +45,7 @@
 .pulldownSmall:hover,
 .dropdownItem:hover {
     background: var(--tool-hover);
+    border-color: var(--tool-border);
 }
 
 .pulldown[aria-expanded="true"],

@@ -113,3 +113,22 @@ describe("Viewport double-click", () => {
         expect(pubSubRecorder.pubs).toEqual([]);
     });
 });
+
+test("camera and zoom actions are buttons that operate the view", () => {
+    const { view } = createMockView([], undefined);
+    const fitContent = rs.fn();
+    const zoom = rs.fn();
+    Object.assign(view, { width: 400, height: 300 });
+    Object.assign(view.cameraController, { fitContent, zoom, cameraType: "orthographic" });
+    const viewport = new Viewport(view as unknown as IView, true);
+    const controls = viewport.querySelector(".vp-view-controls");
+    expect(controls).not.toBeNull();
+    const buttons = controls!.querySelectorAll("button");
+    expect(buttons).toHaveLength(5);
+    expect(Array.from(buttons).every((item) => item.querySelector("span"))).toBe(true);
+    (buttons[2] as unknown as { _onclick: (event: Event) => void })._onclick(new Event("click"));
+    (buttons[3] as unknown as { _onclick: (event: Event) => void })._onclick(new Event("click"));
+    expect(fitContent).toHaveBeenCalledOnce();
+    expect(zoom).toHaveBeenCalledWith(200, 150, -5);
+    viewport.remove();
+});

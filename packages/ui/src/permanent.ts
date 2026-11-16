@@ -24,9 +24,8 @@ export class Permanent {
             ),
         );
         document.body.appendChild(dialog);
-        dialog.showModal();
-
         try {
+            dialog.showModal();
             await action();
         } finally {
             dialog.remove();

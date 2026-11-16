@@ -2,10 +2,12 @@
 // See LICENSE file in the project root for full license information.
 
 import type { IApplication } from "../application";
+import type { IDocument } from "../document";
 import { type AsyncController, type IDisposable, Observable, PubSub, type Result } from "../foundation";
 import { EMPTY_SCOPE, type ParameterValue, resolveUnitSpec, type Scope } from "../parameters/expression";
 import type { UnitSpec } from "../parameters/unitSpec";
 import { type Property, PropertyUtils, property } from "../property";
+import type { IView } from "../visual";
 
 export interface ICommand {
     execute(application: IApplication): Promise<void>;
@@ -23,6 +25,7 @@ export abstract class CancelableCommand extends Observable implements ICancelabl
     private static readonly _propertiesCache: Map<string, any> = new Map();
     protected readonly disposeStack: Set<IDisposable> = new Set();
 
+    private _abandoned = false;
     private _isCompleted: boolean = false;
     get isCompleted() {
         return this._isCompleted;
@@ -34,6 +37,8 @@ export abstract class CancelableCommand extends Observable implements ICancelabl
     }
 
     private _application: IApplication | undefined;
+    private _document: IDocument | undefined;
+    private _view: IView | undefined;
     get application() {
         if (!this._application) {
             throw new Error("application is not set");
@@ -41,8 +46,12 @@ export abstract class CancelableCommand extends Observable implements ICancelabl
         return this._application;
     }
 
+    get view() {
+        return this._view ?? this.application.activeView!;
+    }
+
     get document() {
-        return this.application.activeView?.document!;
+        return this._document ?? this.application.activeView?.document!;
     }
 
     /**
@@ -88,6 +97,14 @@ export abstract class CancelableCommand extends Observable implements ICancelabl
         }
     }
 
+    /** Complete a command that was constructed but never allowed to execute. */
+    abandonBeforeExecute(): void {
+        if (this._application) throw new Error("Cannot abandon a running command");
+        this._abandoned = true;
+        this._isCanceled = true;
+        this._isCompleted = true;
+    }
+
     get repeatOperation() {
         return this.getPrivateValue("repeatOperation", false);
     }
@@ -105,8 +122,11 @@ export abstract class CancelableCommand extends Observable implements ICancelabl
     protected onRestarting() {}
 
     async execute(application: IApplication): Promise<void> {
+        if (this._abandoned) return;
         if (!application.activeView?.document) return;
         this._application = application;
+        this._view = application.activeView;
+        this._document = application.activeView.document;
 
         await Promise.try(async () => {
             this.beforeExecute();
@@ -120,7 +140,12 @@ export abstract class CancelableCommand extends Observable implements ICancelabl
                 await this.executeAsync();
             }
         }).finally(() => {
-            this.afterExecute();
+            try {
+                this.afterExecute();
+            } finally {
+                // Subclass cleanup may fail before calling the base implementation.
+                this._isCompleted = true;
+            }
         });
     }
 
@@ -144,12 +169,16 @@ export abstract class CancelableCommand extends Observable implements ICancelabl
     }
 
     protected afterExecute() {
-        this.saveProperties();
-        PubSub.default.pub("closeCommandContext");
-        this.controller?.dispose();
-        this.disposeStack.forEach((x) => x.dispose());
-        this.disposeStack.clear();
-        this._isCompleted = true;
+        try {
+            this.saveProperties();
+            PubSub.default.pub("closeCommandContext");
+            this.controller?.dispose();
+            this.disposeStack.forEach((x) => x.dispose());
+            this.disposeStack.clear();
+        } finally {
+            // A cleanup failure must not leave cancel() waiting forever.
+            this._isCompleted = true;
+        }
     }
 
     private readProperties() {

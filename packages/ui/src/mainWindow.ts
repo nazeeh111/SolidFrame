@@ -6,6 +6,7 @@ import {
     Config,
     debounce,
     I18n,
+    type I18nKeys,
     type IApplication,
     type IWindow,
     PubSub,
@@ -13,6 +14,7 @@ import {
     RibbonTab,
     type RibbonTabProfile,
 } from "@chili3d/core";
+import { confirmDocumentClose } from "./closeDocumentDialog";
 import { showDialog } from "./dialog";
 import { Editor } from "./editor";
 import { showFloatPanel } from "./floatPanel";
@@ -20,7 +22,7 @@ import { Home } from "./home";
 import { Permanent } from "./permanent";
 import { Toast } from "./toast";
 
-const quickCommands: CommandKeys[] = ["doc.save", "doc.saveToFile", "edit.undo", "edit.redo"];
+const quickCommands: CommandKeys[] = ["doc.save", "doc.saveToFile", "file.export", "edit.undo", "edit.redo"];
 
 export class MainWindow extends HTMLElement implements IWindow {
     readonly ribbon: Ribbon;
@@ -37,6 +39,14 @@ export class MainWindow extends HTMLElement implements IWindow {
         this.tabIndex = 0;
         this.ensureDom(dom);
         this.ribbon = new Ribbon(quickCommands, tabs.map(RibbonTab.fromProfile));
+    }
+
+    showProgress(action: () => Promise<void>, message: I18nKeys, ...args: any[]) {
+        return Permanent.show(action, message, ...args);
+    }
+
+    confirmDocumentClose(name: string, save: () => Promise<void>, discard: () => Promise<void>) {
+        return confirmDocumentClose(this, name, save, discard);
     }
 
     protected ensureDom(dom?: HTMLElement) {
@@ -110,18 +120,25 @@ export class MainWindow extends HTMLElement implements IWindow {
             this._home.remove();
             this._home = undefined;
         }
+        if (this._editor) this._editor.inert = displayHome;
         if (displayHome) {
-            this._initHome(app);
+            void this._initHome(app);
+        } else {
+            this.focus();
         }
     };
 
     private async _initHome(app: IApplication) {
-        this._home = new Home(app);
-        await this._home.render();
+        const home = new Home(app);
+        this._home = home;
+        await home.render();
+        // A pending storage read can finish after Home was closed or replaced.
+        if (this._home !== home) home.remove();
     }
 
     private async _initEditor(app: IApplication) {
         this._editor = new Editor(app, this.ribbon);
+        this._editor.inert = this._home !== undefined;
     }
 
     private applyTheme() {

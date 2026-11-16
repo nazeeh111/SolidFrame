@@ -58,6 +58,7 @@ export class SampleDocument implements ICommand {
             nodes.forEach((node) => node.dispose());
             throw error;
         }
+        document.selection.setSelectedNodes([nodes[0]], false);
         document.visual.update();
         const view = app.activeView;
         if (view) {

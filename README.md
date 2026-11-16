@@ -1,10 +1,10 @@
 # SolidFrame
 
-Build a drilled plate or bracket, edit native solids, and export STEP or STL in your browser. Start with the seven-part fixture or create a part from dimensions.
+Build a drilled plate or bracket, edit native solids, and export STEP or STL in your browser. Start with the seven-part fixture or create a part from dimensions. SolidFrame builds on Chili3D’s CAD engine and adds a mechanical-part builder, editable fixture, and local project workspace.
 
 [Open SolidFrame](https://nazeeh111.github.io/SolidFrame/) · [Source and license](LICENSE)
 
-[![SolidFrame modeling workspace with the seven-part fixture, selected base plate, editable 85 mm width, and corrected Appearance control](docs/images/editable-fixture.jpg)](docs/images/editable-fixture.jpg)
+[![SolidFrame modeling workspace with the seven-part fixture, selected base plate, editable 70 mm width, and redesigned modeling toolbar](docs/images/editable-fixture.jpg)](docs/images/editable-fixture.jpg)
 
 *The live editable sample after changing the base plate width from 70 to 85 mm. Select a part in the tree, edit a dimension in Properties, and use Fit Content to frame the result. Appearance controls display color and texture. [Open the sample](https://nazeeh111.github.io/SolidFrame/) with **Open editable sample**.*
 
@@ -20,15 +20,17 @@ This workflow models ideal geometry. It does not calculate sheet-metal bend allo
 
 Choose **Open editable sample** on the home screen. The workholding fixture contains seven native, editable solids: a base plate, two jaws, a workpiece, two locator pins, and a reference boss. It is an illustrative CAD exercise, not a fabrication-approved fixture.
 
-1. Select **01 · Base plate** in the model tree.
+1. The sample opens with **01 · Base plate** selected. Select another part in the model tree to edit it.
 2. Change its width, depth, or height in Properties. The geometry is rebuilt by OpenCascade, not approximated by a display mesh.
 3. Use the modeling ribbon to add a primitive, boolean operation, fillet, transform, or measurement. The Parametric tab provides constrained sketches and feature operations.
-4. Use **Save** to retain the project in this browser. Use **Save to file** to download an editable `.cd` document.
-5. Use **Export** for STEP, IGES, BREP, STL, OBJ, or PLY; import STEP, IGES, BREP, or STL through the existing file controls. Native `.cd` documents preserve the editing structure that exchange formats may discard.
+4. Use **Save locally** to store a snapshot in this browser. Use **Download .cd** to download a portable, editable project file.
+5. Select the objects to export, choose **Export**, select a format and confirm. STEP, IGES, BREP, STL, OBJ and PLY are supported. Import STEP, IGES, BREP or STL through the file controls. Exchange files contain geometry and may discard the editable structure preserved by `.cd`.
 
 The fixture's parts have independent dimensions; changing one part does not automatically constrain the others. The full sketch-constraint system remains available for your own parametric models.
 
-On narrow screens, **Items / Properties** opens the model tree and editable dimensions. Use **Fit Content** to frame the model after rotating or resizing the view. Larger screens leave the panels visible beside the workspace.
+When closing the last view of a document, choose **Save and close**, **Close without saving**, or **Cancel**. A failed save leaves the document open. Already-started saves finish before the document closes.
+
+On narrow screens, **Items / Properties** opens the model tree and editable dimensions. Camera, zoom and snap controls remain available; **Fit Content** frames the model after rotating or resizing the view. On larger screens the panels remain beside the workspace. Camera and zoom controls and command confirmation buttons can be reached by keyboard and activated with Enter or Space.
 
 ## Run locally
 
@@ -51,7 +53,7 @@ The production site is in `dist/`. Serve it through HTTP, rather than opening it
 ## Local storage and privacy
 
 - CAD calculations run in your browser. No cloud account is required.
-- Save uses the `solidframe-db` browser database; preferences use `solidframe-config`. These are separate from upstream data on the same origin. Existing upstream data is not deleted or migrated; open a downloaded `.cd` file to transfer a project.
+- **Save locally** uses the `solidframe-db` browser database; preferences use `solidframe-config`. These are separate from upstream data on the same origin. Existing upstream data is not deleted or migrated; open a downloaded `.cd` file to transfer a project.
 - Browser storage is not a backup. Clearing site data or using private browsing may remove saved projects; another device/browser/origin does not share them. Keep downloaded native documents for durable backups.
 - Upstream Microsoft Clarity tracking and promotional media feeds have been removed from the active interface.
 - Startup `?plugin=` links are ignored. `?url=` and `?model=` accept supported model/document files over HTTP(S); they cannot load executable `.chiliplugin` files. Intentional plugin imports remain available, and imported plugin code must be trusted.
@@ -61,7 +63,8 @@ The production site is in `dist/`. Serve it through HTTP, rather than opening it
 
 - Original drilled-plate and right-angle-bracket builder with coupled hole-layout validation, atomic parameter editing and native-document persistence.
 - SolidFrame project hub, matching light/dark workspace palettes, original mark and fixture illustration, branded loading and recoverable startup errors.
-- A compact modeling ribbon with distinct command/menu targets, visible keyboard focus, and keyboard navigation through tool menus.
+- A compact modeling ribbon with distinct command/menu targets, a separate removal group, visible keyboard focus, and direct access to local save, native-file download and geometry export.
+- Selected sample geometry with editable properties, labeled property inputs and keyboard-accessible camera and command controls.
 - One-click native fixture with editable Box/Cylinder nodes, serialization support, and one undoable creation transaction.
 - No URL-authorized plugin execution, including the model-file alias path; signed model URLs now retain a correct filename.
 - Query/fragment-safe bundled plugin paths and subpath-compatible production assets.

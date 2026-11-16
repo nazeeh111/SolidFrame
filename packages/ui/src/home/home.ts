@@ -156,10 +156,6 @@ export class Home extends HTMLElement {
                             textContent:
                                 "Start with a fixture or make a plate or bracket. Revise dimensions, add sketches, and export STEP, IGES, or STL.",
                         }),
-                        div(
-                            { className: style.heroActions },
-                            this.action("Start a new model", "icon-plus", "doc.new", true),
-                        ),
                     ),
                     div(
                         { className: style.specimen },
@@ -174,13 +170,6 @@ export class Home extends HTMLElement {
                             span({ textContent: "100 × 70 MM" }),
                         ),
                     ),
-                ),
-                div(
-                    { className: style.featureStrip },
-                    span({ textContent: "SOLID MODELING" }),
-                    span({ textContent: "PARAMETRIC SKETCHES" }),
-                    span({ textContent: "STEP · IGES · STL" }),
-                    span({ textContent: "LOCAL PROJECTS" }),
                 ),
                 div(
                     { className: style.contentRow },

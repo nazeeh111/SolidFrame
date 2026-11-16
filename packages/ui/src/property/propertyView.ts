@@ -34,6 +34,7 @@ export class PropertyView extends HTMLElement {
             }),
             this.panel,
         );
+        this.showEmptyState();
         PubSub.default.sub("showProperties", this.handleShowProperties);
         PubSub.default.sub("activeViewChanged", this.handleActiveViewChanged);
     }
@@ -44,16 +45,26 @@ export class PropertyView extends HTMLElement {
             this.handleShowProperties(view.document, nodes);
         } else {
             this.removeProperties();
+            this.showEmptyState();
         }
     };
 
     private readonly handleShowProperties = (document: IDocument, nodes: INode[]) => {
         this.removeProperties();
-        if (nodes.length === 0) return;
+        if (nodes.length === 0) {
+            this.showEmptyState();
+            return;
+        }
         this.addModel(document, nodes);
         this.addGeometry(nodes, document);
         this.addFeatureList(document, nodes);
     };
+
+    private showEmptyState() {
+        this.panel.append(
+            div({ className: style.empty, textContent: new Localize("properties.selectItem") }),
+        );
+    }
 
     private removeProperties() {
         while (this.panel.lastElementChild) {

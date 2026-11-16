@@ -423,6 +423,9 @@ describe("CommandContext", () => {
 
             const buttons = control!.querySelectorAll(".cc-selection-button");
             expect(buttons.length).toBe(2);
+            expect(
+                Array.from(buttons).every((item) => item.tagName === "BUTTON" && item.querySelector("span")),
+            ).toBe(true);
             (buttons[0] as unknown as { _onclick: () => void })._onclick();
             expect(controller.success).toHaveBeenCalledTimes(1);
 

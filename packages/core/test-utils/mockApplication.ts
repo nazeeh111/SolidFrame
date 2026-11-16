@@ -37,6 +37,7 @@ export function createMockApplication(overrides: MockApplicationOverrides = {}):
             createDBIfNeeded: async () => {},
             get: async () => undefined,
             put: async () => true,
+            putMany: async () => {},
             delete: async () => true,
             page: async () => [],
             ...overrides.storage,

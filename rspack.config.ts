@@ -86,6 +86,8 @@ export default defineConfig({
         }),
     ],
     optimization: {
+        // Avoid numeric chunk 0: the CSS runtime reserves it during bootstrap.
+        chunkIds: "named",
         minimizer: [
             new rspack.SwcJsMinimizerRspackPlugin({
                 minimizerOptions: {

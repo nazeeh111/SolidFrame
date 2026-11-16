@@ -31,7 +31,7 @@ export const QuickButton = (command: ICommand) => {
         return span({ textContent: "null" });
     }
 
-    const labeled = data.key === "doc.save" || data.key === "doc.saveToFile";
+    const labeled = data.key === "doc.save" || data.key === "doc.saveToFile" || data.key === "file.export";
     const icon = createRibbonIcon(data.icon);
     icon.classList.add(style.icon);
     return button(

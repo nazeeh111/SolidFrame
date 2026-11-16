@@ -16,6 +16,7 @@ export interface IDocument extends IPropertyChanged, IDisposable {
     readonly selection: ISelection;
     readonly picker: IPicker;
     readonly id: string;
+    readonly isCloseInProgress: boolean;
     readonly history: History;
     readonly visual: IVisual;
     readonly application: IApplication;
@@ -26,6 +27,6 @@ export interface IDocument extends IPropertyChanged, IDisposable {
     acts: ObservableCollection<Act>;
     userData?: Record<string, unknown>;
     save(): Promise<void>;
-    close(): Promise<void>;
+    close(): Promise<boolean>;
     serialize(): Serialized;
 }

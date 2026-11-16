@@ -7,14 +7,16 @@
     min-width: 0;
     font-size: 1rem;
     padding: 4px;
-    outline: none;
+    font-variant-numeric: tabular-nums;
     background-color: transparent;
 
     border: 1px solid var(--border-color);
     border-radius: 4px;
     margin: 0px;
 
-    &:focus {
+    &:focus-visible {
+        outline: 2px solid var(--primary-color);
+        outline-offset: 1px;
         border-color: var(--primary-color);
     }
 }

@@ -130,6 +130,7 @@ export function createMockDocument(overrides: MockDocumentOverrides = {}): IDocu
 
     Object.assign(doc, {
         id: docId,
+        isCloseInProgress: false,
         name: docName,
         selection,
         picker: {} as IPicker,
@@ -158,7 +159,7 @@ export function createMockDocument(overrides: MockDocumentOverrides = {}): IDocu
             ...overrides.variables,
         } as unknown as IVariableTable,
         save: async () => {},
-        close: async () => {},
+        close: async () => true,
         serialize: () => ({}) as Serialized,
         removePropertyChanged: () => {},
         clearPropertyChanged: () => {},

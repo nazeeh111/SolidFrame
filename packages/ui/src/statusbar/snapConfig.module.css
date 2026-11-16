@@ -3,6 +3,7 @@
     flex-direction: row;
     align-items: center;
     gap: 8px;
+    width: max-content;
     color: var(--foreground-color);
 
     div {
@@ -11,6 +12,7 @@
         align-items: center;
         gap: 4px;
         user-select: none;
+        white-space: nowrap;
 
         input {
             width: 12px;

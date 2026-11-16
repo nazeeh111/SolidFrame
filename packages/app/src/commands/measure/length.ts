@@ -51,14 +51,10 @@ export class LengthMeasure extends MultistepCommand {
             this.meshLine(firstPoint, secondPoint, VisualConfig.highlightEdgeColor, 3),
             this.meshPoint(secondPoint),
         ]);
-        this.application.activeView?.htmlText(
-            distance.toFixed(2),
-            firstPoint.add(secondPoint).multiply(0.5),
-            {
-                onDispose: () => {
-                    this.document.visual.context.removeMesh(visualId);
-                },
+        this.view?.htmlText(distance.toFixed(2), firstPoint.add(secondPoint).multiply(0.5), {
+            onDispose: () => {
+                this.document.visual.context.removeMesh(visualId);
             },
-        );
+        });
     }
 }

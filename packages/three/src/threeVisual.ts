@@ -43,7 +43,7 @@ export class ThreeVisual implements IVisual {
 
     initScene() {
         const scene = new Scene();
-        const envLight = new AmbientLight(0x888888, 4);
+        const envLight = new AmbientLight(0x888888, 1.5);
         const axisHelper = new AxesHelper(250);
         scene.add(envLight, axisHelper);
         return scene;

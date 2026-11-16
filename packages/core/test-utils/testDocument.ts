@@ -22,6 +22,7 @@ import { createMockVisual } from "./mockVisual";
 
 export class TestDocument implements IDocument {
     application: IApplication;
+    readonly isCloseInProgress = false;
     name: string;
     id: string;
     history: History;
@@ -58,8 +59,8 @@ export class TestDocument implements IDocument {
         return Promise.resolve();
     }
 
-    close(): Promise<void> {
-        return Promise.resolve();
+    close(): Promise<boolean> {
+        return Promise.resolve(true);
     }
 
     serialize(): Serialized {
