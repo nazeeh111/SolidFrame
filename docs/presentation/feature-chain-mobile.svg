@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="440" height="1120" viewBox="0 0 440 1120" font-family="Arial" role="img" aria-labelledby="title desc"><title id="title">SolidFrame: sketch, feature and native solid</title><desc id="desc">An actual saved four-line sketch has a 90 millimetre driving width and 40 millimetre current height. Its stored extrusion depth is 12 millimetres. The native document retains the sketch and feature; a separate STEP import retains matching geometry bounds.</desc><rect width="100%" height="100%" fill="#171e23"/>
+<text x="30" y="38" font-size="14" fill="#bdcdd6" font-weight="700">SOLIDFRAME / NATIVE MODEL</text>
+<text x="30" y="84" font-size="31" fill="#edf5fa" font-weight="700">Sketch. Feature. Solid.</text>
+<text x="30" y="118" font-size="17" fill="#bdcdd6" font-weight="400">One actual model, opened in the browser.</text>
+<text x="30" y="180" font-size="18" fill="#9bd1ff" font-weight="700">01  SKETCH1</text>
+<line x1="60.000000" y1="353.000000" x2="330.000000" y2="353.000000" stroke="#9bd1ff" stroke-width="1.5" stroke-dasharray=""/>
+<line x1="330.000000" y1="353.000000" x2="330.000000" y2="233.000000" stroke="#9bd1ff" stroke-width="1.5" stroke-dasharray=""/>
+<line x1="330.000000" y1="233.000000" x2="60.000000" y2="233.000000" stroke="#9bd1ff" stroke-width="1.5" stroke-dasharray=""/>
+<line x1="60.000000" y1="233.000000" x2="60.000000" y2="353.000000" stroke="#9bd1ff" stroke-width="1.5" stroke-dasharray=""/>
+<circle cx="60.000000" cy="233.000000" r="4" fill="#edf5fa"/>
+<circle cx="330.000000" cy="233.000000" r="4" fill="#edf5fa"/>
+<circle cx="330.000000" cy="353.000000" r="4" fill="#edf5fa"/>
+<circle cx="60.000000" cy="353.000000" r="4" fill="#edf5fa"/>
+<line x1="60.000000" y1="210.000000" x2="330.000000" y2="210.000000" stroke="#9bd1ff" stroke-width="1.5" stroke-dasharray=""/>
+<line x1="60.000000" y1="203.000000" x2="60.000000" y2="219.000000" stroke="#9bd1ff" stroke-width="1.5" stroke-dasharray=""/>
+<line x1="330.000000" y1="203.000000" x2="330.000000" y2="219.000000" stroke="#9bd1ff" stroke-width="1.5" stroke-dasharray=""/>
+<text x="169.0" y="199" font-size="19" fill="#9bd1ff" font-weight="700">90 mm</text>
+<text x="342.0" y="299.0" font-size="18" fill="#bdcdd6" font-weight="400">40</text>
+<text x="342.0" y="321.0" font-size="16" fill="#bdcdd6" font-weight="400">mm</text>
+<text x="30" y="402" font-size="17" fill="#edf5fa" font-weight="400">4 lines · 10 recorded constraints</text>
+<text x="30" y="431" font-size="16" fill="#bdcdd6" font-weight="400">Width is driven; height is the saved geometry.</text>
+<text x="30" y="490" font-size="18" fill="#9bd1ff" font-weight="700">02  EXTRUDE / 12 mm</text>
+<polygon points="234.923882,742.987922 69.460895,647.457822 69.460895,621.983129 234.923882,717.513229" fill="#37566b" stroke="#9bd1ff" stroke-width="1.8"/>
+<polygon points="308.462987,700.530100 234.923882,742.987922 234.923882,717.513229 308.462987,675.055407" fill="#284354" stroke="#9bd1ff" stroke-width="1.8"/>
+<polygon points="143.000000,579.525307 308.462987,675.055407 234.923882,717.513229 69.460895,621.983129" fill="#6c8d9e" stroke="#9bd1ff" stroke-width="1.8"/>
+<text x="30" y="790" font-size="27" fill="#edf5fa" font-weight="700">90 × 40 × 12 mm</text>
+<text x="30" y="822" font-size="16" fill="#bdcdd6" font-weight="400">Native profile and extrusion depth.</text>
+<text x="30" y="848" font-size="15" fill="#bdcdd6" font-weight="400">Parallel isometric view; no perspective scaling.</text>
+<line x1="30.000000" y1="890.000000" x2="410.000000" y2="890.000000" stroke="#465963" stroke-width="1.5" stroke-dasharray=""/>
+<text x="30" y="915" font-size="18" fill="#9bd1ff" font-weight="700">03  SAVE AND REOPEN</text>
+<text x="30" y="952" font-size="17" fill="#edf5fa" font-weight="400">.cd  →  Sketch1 + stored Extrude feature</text>
+<text x="30" y="984" font-size="17" fill="#edf5fa" font-weight="400">STEP  →  same imported geometry bounds</text>
+<text x="30" y="1018" font-size="15" fill="#bdcdd6" font-weight="400">STEP carries geometry; native .cd keeps this history.</text>
+<text x="30" y="1094" font-size="14" fill="#bdcdd6" font-weight="400">Actual synthetic CAD example · no fabrication approval</text>
+</svg>

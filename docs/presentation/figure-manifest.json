@@ -1,0 +1,47 @@
+{
+  "source_revision": "7986c79725cf7429d7ec816d647805947ce434bf",
+  "medium": "GitHub README:838px wide and324px narrow article",
+  "meaning": "Actual stored synthetic CAD geometry and feature structure, not physical measurements. No uncertainty estimate or completeCADcertification.",
+  "transforms": "Orthonormal camera rows, common uniform screen scale. Source numbers smaller than1e-12 are drawn at0; raw native file is unchanged. Solid faces illustrate the saved rectangular profile extruded by its actual depth; this is a source-derived diagram, not a browser capture.",
+  "files": {
+    "rectangle-extrusion.cd": {
+      "bytes": 3833,
+      "sha256": "ff002ee2a3c455e2330916c0dca7522bed86481e82fee55c76cacbac3d05fd52"
+    },
+    "rectangle-extrusion.step": {
+      "bytes": 15743,
+      "sha256": "01d487bd527f66c5e90c801c4787da53b2a10a538aa31cea81834629280e3d71"
+    },
+    "render.py": {
+      "bytes": 6873,
+      "sha256": "ca033bfd36eca5dd2b5e9a28559d5e3533b40cb9c349e807e54fd86d83fc69c1"
+    },
+    "replay.json": {
+      "bytes": 8245,
+      "sha256": "e4c469fb592d6a2d8c4d48b8c037335f20e4ee740c3f4af6bf2bbc6bf2bb8713"
+    },
+    "feature-chain.svg": {
+      "bytes": 4350,
+      "sha256": "cfcae15093ccda1e9ee474fffcdb878df7b1258697c80caf7f4340b93177931c"
+    },
+    "feature-chain-mobile.svg": {
+      "bytes": 4209,
+      "sha256": "a63dc9cf0be2baabd99a40e1f82b333972d294832e29055133ec9e8da3ab5cb4"
+    },
+    "case.json": {
+      "bytes": 5636,
+      "sha256": "ea65d7f943e30cfb45a2b1aff778900ffeb84a5f9581d63d6b04c266df46bbac"
+    }
+  },
+  "raster_method": "Direct installed Chromium1254 rendering of each SVG at its declared native dimensions; no image editing, resampling or synthetic screenshot.",
+  "raster_files": {
+    "feature-chain.png": {
+      "bytes": 97438,
+      "sha256": "ddc81f01404b791fb24b4f96c8efc641118ba28433996079defdec2995eada71"
+    },
+    "feature-chain-mobile.png": {
+      "bytes": 78705,
+      "sha256": "e0aecfd45879757702f70e3dabca52ac9fef5c37c074754fc9bb76fc534d11fa"
+    }
+  }
+}

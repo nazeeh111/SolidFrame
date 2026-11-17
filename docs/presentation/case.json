@@ -1,0 +1,296 @@
+{
+  "source_revision": "7986c79725cf7429d7ec816d647805947ce434bf",
+  "units": "mm",
+  "sketch": {
+    "name": "Sketch1",
+    "entities": [
+      {
+        "id": 1,
+        "type": "line",
+        "params": [
+          -5.0306980803327406e-17,
+          40,
+          90,
+          40
+        ]
+      },
+      {
+        "id": 2,
+        "type": "line",
+        "params": [
+          90,
+          40,
+          90,
+          0
+        ]
+      },
+      {
+        "id": 3,
+        "type": "line",
+        "params": [
+          90,
+          0,
+          2.220446049250313e-16,
+          0
+        ]
+      },
+      {
+        "id": 4,
+        "type": "line",
+        "params": [
+          0,
+          0,
+          -5.551115123125783e-17,
+          40
+        ]
+      }
+    ],
+    "constraints": [
+      {
+        "id": 1,
+        "kind": 0,
+        "refs": [
+          {
+            "entityId": 1,
+            "pointIndex": 1
+          },
+          {
+            "entityId": 2,
+            "pointIndex": 0
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "kind": 0,
+        "refs": [
+          {
+            "entityId": 2,
+            "pointIndex": 1
+          },
+          {
+            "entityId": 3,
+            "pointIndex": 0
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "kind": 0,
+        "refs": [
+          {
+            "entityId": 3,
+            "pointIndex": 1
+          },
+          {
+            "entityId": 4,
+            "pointIndex": 0
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "kind": 0,
+        "refs": [
+          {
+            "entityId": 4,
+            "pointIndex": 1
+          },
+          {
+            "entityId": 1,
+            "pointIndex": 0
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "kind": 4,
+        "refs": [
+          {
+            "entityId": 1,
+            "pointIndex": 0
+          },
+          {
+            "entityId": 1,
+            "pointIndex": 1
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "kind": 5,
+        "refs": [
+          {
+            "entityId": 2,
+            "pointIndex": 0
+          },
+          {
+            "entityId": 2,
+            "pointIndex": 1
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "kind": 4,
+        "refs": [
+          {
+            "entityId": 3,
+            "pointIndex": 0
+          },
+          {
+            "entityId": 3,
+            "pointIndex": 1
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "kind": 5,
+        "refs": [
+          {
+            "entityId": 4,
+            "pointIndex": 0
+          },
+          {
+            "entityId": 4,
+            "pointIndex": 1
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "kind": 0,
+        "refs": [
+          {
+            "entityId": 4,
+            "pointIndex": 0
+          },
+          {
+            "entityId": -1,
+            "pointIndex": 0
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "kind": 18,
+        "refs": [
+          {
+            "entityId": 3,
+            "pointIndex": 1
+          },
+          {
+            "entityId": 2,
+            "pointIndex": 1
+          }
+        ],
+        "datum": 90
+      }
+    ],
+    "driving_width": 90,
+    "current_height": 40
+  },
+  "feature": {
+    "id": "CsBuV1-DWrHw2AMXZR0Sv",
+    "type": "extrude",
+    "depth": 12,
+    "sketchId": "TZhCZ1UE5fzbxk-bMiTM0",
+    "profiles": [
+      {
+        "edges": [
+          {
+            "kind": "line",
+            "start": {
+              "x": 1.1102230246251565e-16,
+              "y": 0,
+              "z": 0
+            },
+            "end": {
+              "x": -5.2909066017292616e-17,
+              "y": 40,
+              "z": 0
+            }
+          },
+          {
+            "kind": "line",
+            "start": {
+              "x": -5.2909066017292616e-17,
+              "y": 40,
+              "z": 0
+            },
+            "end": {
+              "x": 90,
+              "y": 40,
+              "z": 0
+            }
+          },
+          {
+            "kind": "line",
+            "start": {
+              "x": 90,
+              "y": 40,
+              "z": 0
+            },
+            "end": {
+              "x": 90,
+              "y": 0,
+              "z": 0
+            }
+          },
+          {
+            "kind": "line",
+            "start": {
+              "x": 90,
+              "y": 0,
+              "z": 0
+            },
+            "end": {
+              "x": 1.1102230246251565e-16,
+              "y": 0,
+              "z": 0
+            }
+          }
+        ],
+        "entities": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "center": {
+          "x": 45,
+          "y": 20,
+          "z": 0
+        },
+        "area": 3600
+      }
+    ]
+  },
+  "isometric_projection_rows": [
+    [
+      0.7071067811865475,
+      -0.7071067811865475,
+      0
+    ],
+    [
+      0.4082482904638631,
+      0.4082482904638631,
+      -0.816496580927726
+    ]
+  ],
+  "projection_note": "Orthonormal camera rows, common uniform screen scale. Source numbers smaller than1e-12 are drawn at0; raw native file is unchanged. Solid faces illustrate the saved rectangular profile extruded by its actual depth; this is a source-derived diagram, not a browser capture.",
+  "native_bounds": {
+    "min": [
+      -5.551115123125783e-17,
+      0,
+      0
+    ],
+    "max": [
+      90,
+      40,
+      12
+    ]
+  },
+  "roundtrip": "See replay.json: actual public application opens the native feature model, and a separate new document imports STEP with the same bounds. STEP does not retain the sketch feature history."
+}
