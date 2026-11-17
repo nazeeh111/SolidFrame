@@ -1,12 +1,34 @@
 # SolidFrame
 
-Build a drilled plate or bracket, edit native solids, and export STEP or STL in your browser. Start with the seven-part fixture or create a part from dimensions. SolidFrame builds on Chili3D’s CAD engine and adds a mechanical-part builder, editable fixture, and local project workspace.
+**Browser CAD for sketches, parametric features and native solids.**
 
-[Open SolidFrame](https://nazeeh111.github.io/SolidFrame/) · [Source and license](LICENSE)
+Draw and constrain a sketch, build a feature, revise its dimensions, and export the resulting geometry. SolidFrame builds on [Chili3D](https://github.com/xiangechen/chili3d) and the OpenCascade WebAssembly kernel, with a local project workspace, an editable fixture and a mechanical-part builder.
 
-[![SolidFrame modeling workspace with the seven-part fixture, selected base plate, editable 70 mm width, and redesigned modeling toolbar](docs/images/editable-fixture.jpg)](docs/images/editable-fixture.jpg)
+[Open SolidFrame](https://nazeeh111.github.io/SolidFrame/) · [Open the worked model](docs/presentation/README.md) · [Mechanical parts](docs/mechanical-parts.md) · [Engine reference](UPSTREAM_README.md)
 
-*The live editable sample after changing the base plate width from 70 to 85 mm. Select a part in the tree, edit a dimension in Properties, and use Fit Content to frame the result. Appearance controls display color and texture. [Open the sample](https://nazeeh111.github.io/SolidFrame/) with **Open editable sample**.*
+<picture>
+  <source media="(max-width: 600px)" srcset="docs/presentation/feature-chain-mobile.png">
+  <img src="docs/presentation/feature-chain.png" alt="Actual saved SolidFrame model: four sketch lines, a 90 mm driving width, a 40 mm current height and a 12 mm extrusion. The native document reopens with its sketch and feature. A separate STEP import has the same 90 by 40 by 12 mm bounds, without native feature history.">
+</picture>
+
+**The sketch and its feature remain editable.** This completed example drives a rectangle's width to **90 mm**, extrudes it **12 mm**, then reopens both the native model and its STEP export. The current height is **40 mm**. The diagram comes from the actual saved profile and feature; it is separate from the [live application's reopened model capture](docs/presentation/native-reopened.png).
+
+[Download the native .cd model](docs/presentation/rectangle-extrusion.cd) · [Download its STEP geometry](docs/presentation/rectangle-extrusion.step) · [Inspect the actual workflow and limits](docs/presentation/README.md)
+
+## A modeling workspace
+
+- **Sketch and feature modeling:** constrained sketches, extrusion, revolve, fillet, chamfer and feature booleans, with stored feature definitions and replay.
+- **Direct solid tools:** primitives, transforms, booleans, measurement and geometry operations in the modeling ribbon.
+- **Mechanical parts:** dimensioned plates and right-angle brackets, coupled hole-layout validation, atomic edits and native-document persistence.
+- **Local projects:** undo/redo, browser snapshots, portable native documents and geometry exchange. No account or cloud service is required for normal CAD work.
+
+The underlying CAD engine and its existing tools come from Chili3D. SolidFrame's specific additions are described under [Project development](#project-development); they do not imply independent authorship of the kernel, sketch solver or inherited modeling tools.
+
+## Sketch to solid
+
+The [worked native document](docs/presentation/README.md) contains `Sketch1` and `Parametric Body1`. Its stored extrusion refers to the sketch and its four profile edges. In the completed run, undo removed the new body, redo restored it, and downloading/reopening `.cd` retained the sketch and feature. The live application then imported the saved STEP into a separate new document with matching bounds.
+
+Use **Open document** on the home screen for the native `.cd`. For STEP, create a new document and use **Model → Import**. Use **Fit Content** to frame either model. Native `.cd` keeps this editable history; STEP carries exchange geometry. Matching bounds do not establish every topology, model, format or downstream manufacturing workflow.
 
 ## Design a drilled part
 
@@ -17,6 +39,11 @@ Edit the saved part through the dedicated part editor. Apply commits the configu
 This workflow models ideal geometry. It does not calculate sheet-metal bend allowance, thread or fastener standards, structural strength, or fabrication approval. See [mechanical parts](docs/mechanical-parts.md) for the controls, supported ranges and verification.
 
 ## Start with real geometry
+
+![Actual live SolidFrame fixture with seven native parts and the selected base plate width 85 mm after undo/redo](docs/presentation/fixture-width85.png)
+
+The completed live sample has **Width 85 mm** after editing 70→85 mm, undoing to 70 mm and redoing to 85 mm. Appearance controls display color and texture.
+
 
 Choose **Open editable sample** on the home screen. The workholding fixture contains seven native, editable solids: a base plate, two jaws, a workpiece, two locator pins, and a reference boss. It is an illustrative CAD exercise, not a fabrication-approved fixture.
 

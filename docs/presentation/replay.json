@@ -1,0 +1,349 @@
+{
+  "source": "7986c79725cf7429d7ec816d647805947ce434bf",
+  "url": "https://nazeeh111.github.io/SolidFrame/",
+  "errors": [],
+  "native": {
+    "name": "Untitled 1",
+    "nodes": [
+      {
+        "name": "Sketch1",
+        "kind": "SketchNode",
+        "data": {
+          "entities": [
+            {
+              "id": 1,
+              "type": "line",
+              "params": [
+                -5.0306980803327406e-17,
+                40,
+                90,
+                40
+              ]
+            },
+            {
+              "id": 2,
+              "type": "line",
+              "params": [
+                90,
+                40,
+                90,
+                0
+              ]
+            },
+            {
+              "id": 3,
+              "type": "line",
+              "params": [
+                90,
+                0,
+                2.220446049250313e-16,
+                0
+              ]
+            },
+            {
+              "id": 4,
+              "type": "line",
+              "params": [
+                0,
+                0,
+                -5.551115123125783e-17,
+                40
+              ]
+            }
+          ],
+          "constraints": [
+            {
+              "id": 1,
+              "kind": 0,
+              "refs": [
+                {
+                  "entityId": 1,
+                  "pointIndex": 1
+                },
+                {
+                  "entityId": 2,
+                  "pointIndex": 0
+                }
+              ]
+            },
+            {
+              "id": 2,
+              "kind": 0,
+              "refs": [
+                {
+                  "entityId": 2,
+                  "pointIndex": 1
+                },
+                {
+                  "entityId": 3,
+                  "pointIndex": 0
+                }
+              ]
+            },
+            {
+              "id": 3,
+              "kind": 0,
+              "refs": [
+                {
+                  "entityId": 3,
+                  "pointIndex": 1
+                },
+                {
+                  "entityId": 4,
+                  "pointIndex": 0
+                }
+              ]
+            },
+            {
+              "id": 4,
+              "kind": 0,
+              "refs": [
+                {
+                  "entityId": 4,
+                  "pointIndex": 1
+                },
+                {
+                  "entityId": 1,
+                  "pointIndex": 0
+                }
+              ]
+            },
+            {
+              "id": 5,
+              "kind": 4,
+              "refs": [
+                {
+                  "entityId": 1,
+                  "pointIndex": 0
+                },
+                {
+                  "entityId": 1,
+                  "pointIndex": 1
+                }
+              ]
+            },
+            {
+              "id": 6,
+              "kind": 5,
+              "refs": [
+                {
+                  "entityId": 2,
+                  "pointIndex": 0
+                },
+                {
+                  "entityId": 2,
+                  "pointIndex": 1
+                }
+              ]
+            },
+            {
+              "id": 7,
+              "kind": 4,
+              "refs": [
+                {
+                  "entityId": 3,
+                  "pointIndex": 0
+                },
+                {
+                  "entityId": 3,
+                  "pointIndex": 1
+                }
+              ]
+            },
+            {
+              "id": 8,
+              "kind": 5,
+              "refs": [
+                {
+                  "entityId": 4,
+                  "pointIndex": 0
+                },
+                {
+                  "entityId": 4,
+                  "pointIndex": 1
+                }
+              ]
+            },
+            {
+              "id": 9,
+              "kind": 0,
+              "refs": [
+                {
+                  "entityId": 4,
+                  "pointIndex": 0
+                },
+                {
+                  "entityId": -1,
+                  "pointIndex": 0
+                }
+              ]
+            },
+            {
+              "id": 10,
+              "kind": 18,
+              "refs": [
+                {
+                  "entityId": 3,
+                  "pointIndex": 1
+                },
+                {
+                  "entityId": 2,
+                  "pointIndex": 1
+                }
+              ],
+              "datum": 90
+            }
+          ],
+          "entityIdSeq": 5,
+          "externalIdSeq": -100,
+          "anchors": [
+            {
+              "id": 10,
+              "anchor": {
+                "kind": "offset",
+                "offset": -14.914819664919932
+              }
+            }
+          ]
+        },
+        "bounds": {
+          "min": {
+            "x": -0.22500010050000002,
+            "y": -0.22500010049999997,
+            "z": -0.22500010049999997
+          },
+          "max": {
+            "x": 90.2250001005,
+            "y": 40.2250001005,
+            "z": 0.22500010049999997
+          }
+        },
+        "children": []
+      },
+      {
+        "name": "Parametric Body1",
+        "kind": "ParametricBodyNode",
+        "features": [
+          {
+            "id": "CsBuV1-DWrHw2AMXZR0Sv",
+            "type": "extrude",
+            "depth": 12,
+            "sketchId": "TZhCZ1UE5fzbxk-bMiTM0",
+            "profiles": [
+              {
+                "edges": [
+                  {
+                    "kind": "line",
+                    "start": {
+                      "x": 1.1102230246251565e-16,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "end": {
+                      "x": -5.2909066017292616e-17,
+                      "y": 40,
+                      "z": 0
+                    }
+                  },
+                  {
+                    "kind": "line",
+                    "start": {
+                      "x": -5.2909066017292616e-17,
+                      "y": 40,
+                      "z": 0
+                    },
+                    "end": {
+                      "x": 90,
+                      "y": 40,
+                      "z": 0
+                    }
+                  },
+                  {
+                    "kind": "line",
+                    "start": {
+                      "x": 90,
+                      "y": 40,
+                      "z": 0
+                    },
+                    "end": {
+                      "x": 90,
+                      "y": 0,
+                      "z": 0
+                    }
+                  },
+                  {
+                    "kind": "line",
+                    "start": {
+                      "x": 90,
+                      "y": 0,
+                      "z": 0
+                    },
+                    "end": {
+                      "x": 1.1102230246251565e-16,
+                      "y": 0,
+                      "z": 0
+                    }
+                  }
+                ],
+                "entities": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "center": {
+                  "x": 45,
+                  "y": 20,
+                  "z": 0
+                },
+                "area": 3600
+              }
+            ]
+          }
+        ],
+        "bounds": {
+          "min": {
+            "x": -5.2909066017292616e-17,
+            "y": 0,
+            "z": 0
+          },
+          "max": {
+            "x": 90,
+            "y": 40,
+            "z": 12
+          }
+        },
+        "children": []
+      }
+    ]
+  },
+  "imported": {
+    "name": "Untitled 1",
+    "nodes": [
+      {
+        "name": "rectangle-extrusion.step",
+        "kind": "GroupNode",
+        "children": [
+          {
+            "name": "Open CASCADE STEP translator 8.0 2",
+            "kind": "EditableShapeNode",
+            "bounds": {
+              "min": {
+                "x": -5.2909066017292616e-17,
+                "y": 0,
+                "z": 0
+              },
+              "max": {
+                "x": 90,
+                "y": 40,
+                "z": 12
+              }
+            },
+            "children": []
+          }
+        ]
+      }
+    ]
+  },
+  "pass": true
+}
