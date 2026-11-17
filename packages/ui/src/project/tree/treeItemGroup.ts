@@ -14,6 +14,7 @@ export class TreeGroup extends TreeItem {
 
     constructor(document: IDocument, node: INodeLinkedList) {
         super(document, node);
+        this.items.setAttribute("role", "group");
         this.expanderIcon = this.createExpanderIcon(node);
         const typeIcon = this.createTypeIcon();
         this.header = div(
@@ -51,6 +52,11 @@ export class TreeGroup extends TreeItem {
         const hide =
             !(this.node instanceof FolderNode) && (this.node as INodeLinkedList).firstChild === undefined;
         this.expanderIcon.classList.toggle(style.hide, hide);
+        if (this.node instanceof FolderNode || (this.node as INodeLinkedList).firstChild !== undefined) {
+            this.setAttribute("aria-expanded", String(this._isExpanded));
+        } else {
+            this.removeAttribute("aria-expanded");
+        }
     }
 
     get isExpanded(): boolean {
@@ -59,8 +65,10 @@ export class TreeGroup extends TreeItem {
 
     set isExpanded(value: boolean) {
         this._isExpanded = value;
+        this.setAttribute("aria-expanded", String(value));
         setSVGIcon(this.expanderIcon, this.getExpanderIcon());
         this.items.classList.toggle(style.hide, !this._isExpanded);
+        this.dispatchEvent(new Event("tree-expansion-changed", { bubbles: true }));
     }
 
     mainElement(): HTMLElement {
