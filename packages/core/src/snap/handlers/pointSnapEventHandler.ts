@@ -54,7 +54,7 @@ export class PointSnapEventHandler extends SnapEventHandler<PointSnapData> {
         } else if (dims.length === 1 && this._snaped?.point) {
             result.point = this.calculatePointFromDistance(refPoint, dims[0]);
         } else if (dims.length > 1) {
-            result.point = this.calculatePointFromCoordinates(refPoint, dims);
+            result.point = this.calculatePointFromCoordinates(view, refPoint, dims);
         }
 
         return result;
@@ -73,8 +73,8 @@ export class PointSnapEventHandler extends SnapEventHandler<PointSnapData> {
         return refPoint.add(vector.multiply(distance));
     }
 
-    private calculatePointFromCoordinates(refPoint: XYZ, dims: number[]): XYZ {
-        const plane = this.data.plane?.() ?? this.snaped!.view.workplane;
+    private calculatePointFromCoordinates(view: IView, refPoint: XYZ, dims: number[]): XYZ {
+        const plane = this.data.plane?.() ?? view.workplane;
         let point = refPoint.add(plane.xvec.multiply(dims[0])).add(plane.yvec.multiply(dims[1]));
         if (dims.length === 3) {
             point = point.add(plane.normal.multiply(dims[2]));

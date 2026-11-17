@@ -143,6 +143,40 @@ describe("SnapEventHandler — base class behaviour", () => {
     // --------------------------------------------------------------------------
 
     describe("numeric input", () => {
+        test.each([
+            "before hover",
+            "after pointer exit",
+        ])("accepts relative coordinates %s through the numeric input callback", (stage) => {
+            const view = createHandlerMockView();
+            const handler = new PointSnapEventHandler(document, controller, {
+                dimension: 0b111,
+                refPoint: () => new XYZ({ x: 10, y: 20, z: 30 }),
+            });
+            if (stage === "after pointer exit") {
+                handler.pointerMove(view, createPointerEvent());
+                handler.pointerOut(view, createPointerEvent());
+            }
+            let submit: ((text: string) => { isOk: boolean }) | undefined;
+            const capture = (_text: string, callback: (text: string) => { isOk: boolean }) => {
+                submit = callback;
+            };
+            PubSub.default.sub("showInput", capture);
+            try {
+                handler.keyDown(view, { key: "8" } as KeyboardEvent);
+                expect(handler.snaped).toBeUndefined();
+                expect(submit!("80,40").isOk).toBe(true);
+                const expected = new XYZ({ x: 10, y: 20, z: 30 })
+                    .add(view.workplane.xvec.multiply(80))
+                    .add(view.workplane.yvec.multiply(40));
+                expect(handler.snaped!.point!.isEqualTo(expected)).toBe(true);
+                expect(handler.snaped!.view).toBe(view);
+                expect(handler.state).toBe("completed");
+            } finally {
+                PubSub.default.remove("showInput", capture);
+                handler.dispose();
+            }
+        });
+
         test("should enter inputing state on digit key", () => {
             const handler = new PointSnapEventHandler(document, controller, {
                 dimension: 0b111,
