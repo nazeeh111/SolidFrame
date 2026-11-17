@@ -30,6 +30,8 @@ The fixture's parts have independent dimensions; changing one part does not auto
 
 When closing the last view of a document, choose **Save and close**, **Close without saving**, or **Cancel**. A failed save leaves the document open. Already-started saves finish before the document closes.
 
+In the model tree, Up/Down moves keyboard focus without changing selection; Enter or Space selects, Left/Right collapses or opens groups. Ctrl/Command with Enter or Space retains the existing multi-selection behavior.
+
 On narrow screens, **Items / Properties** opens the model tree and editable dimensions. Camera, zoom and snap controls remain available; **Fit Content** frames the model after rotating or resizing the view. On larger screens the panels remain beside the workspace. Camera and zoom controls and command confirmation buttons can be reached by keyboard and activated with Enter or Space.
 
 ## Run locally

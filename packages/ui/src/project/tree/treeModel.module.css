@@ -9,3 +9,8 @@
 .panel:hover {
     background-color: var(--hover-background-color);
 }
+
+.panel:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: -2px;
+}

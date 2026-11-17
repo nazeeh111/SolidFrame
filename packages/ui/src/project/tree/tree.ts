@@ -4,6 +4,7 @@
 import {
     Annotation,
     FolderNode,
+    I18n,
     type IDocument,
     type INode,
     type INodeLinkedList,
@@ -33,12 +34,16 @@ export class Tree extends HTMLElement {
     constructor(private document: IDocument) {
         super();
         this.className = style.panel;
+        this.setAttribute("role", "tree");
+        this.setAttribute("aria-label", I18n.translate("items.header"));
+        this.setAttribute("aria-multiselectable", "true");
         this.initializeTree(document);
     }
 
     private initializeTree(document: IDocument) {
         this.addAllNodes(document, this, document.modelManager.rootNode);
         this.addEvents(this);
+        this.synchronizeTabStop();
     }
 
     connectedCallback() {
@@ -105,6 +110,7 @@ export class Tree extends HTMLElement {
             ele.refreshVisibleIcon();
             this.refreshGroupExpander(record.oldParent);
         });
+        this.synchronizeTabStop();
     };
 
     private refreshGroupExpander(parent: INodeLinkedList | undefined) {
@@ -121,6 +127,7 @@ export class Tree extends HTMLElement {
     private readonly handleSelectionChanged = (selected: INode[]) => {
         this.lastSelected?.forEach((x) => {
             this.nodeMap.get(x)?.removeStyle(style.selected);
+            this.nodeMap.get(x)?.setAttribute("aria-selected", "false");
             this.selectedNodes.delete(x);
         });
         this.lastSelected = Array.from(selected);
@@ -128,8 +135,10 @@ export class Tree extends HTMLElement {
         selected.forEach((model) => {
             this.selectedNodes.add(model);
             this.nodeMap.get(model)?.addStyle(style.selected);
+            this.nodeMap.get(model)?.setAttribute("aria-selected", "true");
         });
         this.scrollToNode(selected);
+        this.synchronizeTabStop();
     };
 
     private ensureHasHTML(records: NodeRecord[]) {
@@ -179,6 +188,9 @@ export class Tree extends HTMLElement {
     }
 
     private addEvents(item: HTMLElement) {
+        item.addEventListener("tree-expansion-changed", this.onExpansionChanged);
+        item.addEventListener("keydown", this.onKeyDown);
+        item.addEventListener("focusin", this.onFocusIn);
         item.addEventListener("dragstart", this.onDragStart);
         item.addEventListener("dragover", this.onDragOver);
         item.addEventListener("dragleave", this.onDragLeave);
@@ -189,6 +201,9 @@ export class Tree extends HTMLElement {
     }
 
     private removeEvents(item: HTMLElement) {
+        item.removeEventListener("tree-expansion-changed", this.onExpansionChanged);
+        item.removeEventListener("keydown", this.onKeyDown);
+        item.removeEventListener("focusin", this.onFocusIn);
         item.removeEventListener("dragstart", this.onDragStart);
         item.removeEventListener("dragover", this.onDragOver);
         item.removeEventListener("dragleave", this.onDragLeave);
@@ -203,6 +218,88 @@ export class Tree extends HTMLElement {
         if (item instanceof TreeItem) return item;
         return this.getTreeItem(item.parentElement);
     }
+
+    private visibleItems(): TreeItem[] {
+        return Array.from(this.querySelectorAll<TreeItem>("tree-model, tree-group")).filter((item) => {
+            for (let parent = item.parentElement; parent && parent !== this; parent = parent.parentElement) {
+                if (parent instanceof TreeGroup && !parent.isExpanded) return false;
+            }
+            return true;
+        });
+    }
+
+    private synchronizeTabStop() {
+        const items = this.visibleItems();
+        const focused = this.getTreeItem(document.activeElement as HTMLElement);
+        const preferred =
+            focused && items.includes(focused)
+                ? focused
+                : (items.find((item) => this.selectedNodes.has(item.node)) ??
+                  items.find((item) => item.tabIndex === 0) ??
+                  items[0]);
+        for (const item of this.nodeMap.values()) item.tabIndex = item === preferred ? 0 : -1;
+    }
+
+    private readonly onExpansionChanged = () => this.synchronizeTabStop();
+
+    private readonly onFocusIn = (event: FocusEvent) => {
+        const item = this.getTreeItem(event.target as HTMLElement);
+        if (item) {
+            for (const row of this.nodeMap.values()) row.tabIndex = row === item ? 0 : -1;
+        }
+    };
+
+    private focusItem(item: TreeItem | undefined) {
+        if (!item) return;
+        item.focus({ preventScroll: true });
+        item.mainElement().scrollIntoView({ block: "nearest" });
+    }
+
+    private readonly onKeyDown = (event: KeyboardEvent) => {
+        const item = this.getTreeItem(event.target as HTMLElement);
+        if (!item || event.target !== item || event.altKey) return;
+        const items = this.visibleItems();
+        const index = items.indexOf(item);
+        switch (event.key) {
+            case "ArrowDown":
+                this.focusItem(items[Math.min(index + 1, items.length - 1)]);
+                break;
+            case "ArrowUp":
+                this.focusItem(items[Math.max(index - 1, 0)]);
+                break;
+            case "Home":
+                this.focusItem(items[0]);
+                break;
+            case "End":
+                this.focusItem(items.at(-1));
+                break;
+            case "ArrowRight":
+                if (item instanceof TreeGroup) {
+                    if (!item.isExpanded) item.isExpanded = true;
+                    else
+                        this.focusItem(
+                            items[index + 1]?.node.parent === item.node ? items[index + 1] : undefined,
+                        );
+                }
+                break;
+            case "ArrowLeft":
+                if (item instanceof TreeGroup && item.isExpanded) item.isExpanded = false;
+                else this.focusItem(item.node.parent ? this.nodeMap.get(item.node.parent) : undefined);
+                break;
+            case "Enter":
+            case " ":
+                if (!event.repeat && this.canSelect()) {
+                    this.document.selection.setSelectedNodes([item.node], event.ctrlKey || event.metaKey);
+                    this.handleLastClickItem(item.node);
+                }
+                break;
+            default:
+                return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        this.synchronizeTabStop();
+    };
 
     private readonly onClick = (event: MouseEvent) => {
         if (!this.canSelect()) return;

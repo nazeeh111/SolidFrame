@@ -2,10 +2,11 @@
 // See LICENSE file in the project root for full license information.
 
 import type { IDocument, INode, INodeLinkedList, NodeRecord } from "@chili3d/core";
-// test-utils must load BEFORE the core-mock helper so the real core module is
-// fully cached by the time `rs.mock("@chili3d/core")` registers.
 import { createMockDocument, type MockDocumentOverrides } from "@chili3d/core/test-utils";
 import { afterEach, beforeEach, describe, expect, rs, test } from "@rstest/core";
+// test-utils must load BEFORE the core-mock helper so the real core module is
+// fully cached by the time `rs.mock("@chili3d/core")` registers.
+import { ShortcutProfiles } from "../../core/src/command/shortcutProfiles";
 
 // CSS modules under test
 rs.mock("../src/project/tree/tree.module.css", () => ({
@@ -195,6 +196,128 @@ describe("Tree", () => {
         fixture?.tree.remove();
         fixture?.tree.dispose();
         document.body.innerHTML = "";
+    });
+
+    describe("keyboard model navigation", () => {
+        function key(item: HTMLElement, value: string, options: KeyboardEventInit = {}) {
+            item.dispatchEvent(
+                new KeyboardEvent("keydown", { key: value, bubbles: true, cancelable: true, ...options }),
+            );
+        }
+
+        test("exposes a named multiselect tree with one visible tab stop", () => {
+            fixture = createFixture();
+            expect(fixture.tree.getAttribute("role")).toBe("tree");
+            expect(fixture.tree.getAttribute("aria-multiselectable")).toBe("true");
+            const rows = Array.from(fixture.tree.querySelectorAll<HTMLElement>("[role=treeitem]"));
+            expect(rows).toHaveLength(4);
+            expect(rows.filter((row) => row.tabIndex === 0)).toHaveLength(1);
+            expect(rows.map((row) => row.getAttribute("aria-label"))).toEqual([
+                "root",
+                "groupA",
+                "model1",
+                "model2",
+            ]);
+        });
+
+        test("arrow focus is independent of selection and Enter selects the focused model", () => {
+            fixture = createFixture();
+            fixture.doc.visual.eventHandler = Object.create(
+                NodeSelectionHandler.prototype,
+            ) as IDocument["visual"]["eventHandler"];
+            const first = fixture.tree.treeItem(fixture.root as unknown as INode)!;
+            first.focus();
+            key(first, "End");
+            const last = fixture.tree.treeItem(fixture.model2 as unknown as INode)!;
+            expect(document.activeElement).toBe(last);
+            expect(fixture.doc.selection.setSelectedNodes).not.toHaveBeenCalled();
+            key(last, "Enter", { ctrlKey: true });
+            expect(fixture.doc.selection.setSelectedNodes).toHaveBeenCalledWith([fixture.model2], true);
+        });
+
+        test("collapsed descendants leave navigation and Right reopens the group", () => {
+            fixture = createFixture();
+            const group = fixture.tree.treeItem(fixture.groupA as unknown as INode) as TreeGroup;
+            group.focus();
+            key(group, "ArrowLeft");
+            expect(group.getAttribute("aria-expanded")).toBe("false");
+            expect(group.isExpanded).toBe(false);
+            key(group, "End");
+            expect(document.activeElement).toBe(group);
+            key(group, "ArrowRight");
+            expect(group.getAttribute("aria-expanded")).toBe("true");
+            key(group, "ArrowRight");
+            expect(document.activeElement).toBe(fixture.tree.treeItem(fixture.model1 as unknown as INode));
+        });
+
+        test("Revit M then V reaches window without toggling visibility", () => {
+            fixture = createFixture();
+            const model = fixture.tree.treeItem(fixture.model1 as unknown as INode)!;
+            const clicked = rs.fn();
+            const observed: string[] = [];
+            const onKey = (event: KeyboardEvent) => observed.push(event.key);
+            model.visibleIcon.addEventListener("click", clicked);
+            window.addEventListener("keydown", onKey);
+            try {
+                expect(ShortcutProfiles.Revit["modify.move"]).toBe("m+v");
+                model.focus();
+                key(model, "m");
+                key(model, "v");
+                expect(observed).toEqual(["m", "v"]);
+                expect(clicked).not.toHaveBeenCalled();
+                expect(fixture.model1.visible).toBe(true);
+            } finally {
+                window.removeEventListener("keydown", onKey);
+            }
+        });
+
+        test("configured letter sequences remain window-owned in every shortcut profile", () => {
+            fixture = createFixture();
+            const model = fixture.tree.treeItem(fixture.model1 as unknown as INode)!;
+            const observed: string[] = [];
+            const onKey = (event: KeyboardEvent) => observed.push(event.key);
+            window.addEventListener("keydown", onKey);
+            try {
+                for (const profile of Object.values(ShortcutProfiles)) {
+                    for (const specification of Object.values(profile).flat()) {
+                        if (typeof specification !== "string") continue;
+                        const letters = specification
+                            .split("+")
+                            .filter((segment) => /^[a-z]$/i.test(segment));
+                        observed.length = 0;
+                        for (const letter of letters) key(model, letter);
+                        expect(observed).toEqual(letters);
+                    }
+                }
+            } finally {
+                window.removeEventListener("keydown", onKey);
+            }
+        });
+
+        test("pointer or toolbar collapse cannot leave the only tab stop hidden", () => {
+            fixture = createFixture();
+            const model = fixture.tree.treeItem(fixture.model1 as unknown as INode)!;
+            const group = fixture.tree.treeItem(fixture.groupA as unknown as INode) as TreeGroup;
+            model.focus();
+            group.isExpanded = false;
+            expect(model.tabIndex).toBe(-1);
+            const stops = fixture.tree.querySelectorAll<HTMLElement>("[tabindex='0']");
+            expect(stops).toHaveLength(1);
+            expect(stops[0]).toBe(fixture.tree.treeItem(fixture.root as unknown as INode));
+        });
+
+        test("selection semantics update without stealing keyboard focus", () => {
+            fixture = createFixture();
+            const first = fixture.tree.treeItem(fixture.model1 as unknown as INode)!;
+            const second = fixture.tree.treeItem(fixture.model2 as unknown as INode)!;
+            first.focus();
+            fixture.doc.emitSelection([fixture.model2 as unknown as INode]);
+            expect(document.activeElement).toBe(first);
+            expect(first.getAttribute("aria-selected")).toBe("false");
+            expect(second.getAttribute("aria-selected")).toBe("true");
+            expect(first.tabIndex).toBe(0);
+            expect(second.tabIndex).toBe(-1);
+        });
     });
 
     describe("data to tree mapping", () => {

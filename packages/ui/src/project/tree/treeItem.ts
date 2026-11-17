@@ -37,6 +37,11 @@ export abstract class TreeItem extends HTMLElement {
         super();
         this._node = node;
         this.draggable = true;
+        this.tabIndex = -1;
+        this.setAttribute("role", "treeitem");
+        this.setAttribute("aria-label", node.name);
+        this.setAttribute("aria-selected", "false");
+        this.setAttribute("aria-keyshortcuts", "Enter Space");
         this.name = label({
             className: style.name,
             textContent: new Binding(node, "name"),
@@ -74,7 +79,9 @@ export abstract class TreeItem extends HTMLElement {
     }
 
     private readonly onPropertyChanged = (property: string, model: INode) => {
-        if (property === "visible") {
+        if (property === "name") {
+            this.setAttribute("aria-label", model.name);
+        } else if (property === "visible") {
             setSVGIcon(this.visibleIcon, this.getVisibleIcon());
         } else if (property === "parentVisible") {
             this.setVisibleStyle(model.parentVisible);
