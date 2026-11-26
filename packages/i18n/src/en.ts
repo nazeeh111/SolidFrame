@@ -313,7 +313,7 @@ export default {
         "fabrication.horizontal": "Horizontal face",
         "fabrication.kind": "Part type",
         "fabrication.layoutNote":
-            "2D layout only. Maximum: 32 holes per part and 2000 mm per dimension. Minimum thickness: 0.5 mm. Keep at least 0.5 mm of material between holes and from holes to stock edges or the adjoining flange.",
+            "Bracket views share a scale. The shaded strip shows where the other flange meets the face.",
         "fabrication.length": "Length",
         "fabrication.mm": "mm",
         "fabrication.pitchX": "Column spacing (centre to centre)",

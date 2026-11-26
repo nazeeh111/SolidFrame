@@ -107,12 +107,27 @@ test("bracket and hole toggles update the drawing and ignore inactive invalid va
     const callback = rs.fn(async (_parameters: FabricationParameters) => Result.ok(true));
     const closed = showFabricationDialog(defaultFabricationParameters(), "create", callback);
     expect(dialog().querySelectorAll('svg[role="img"]')).toHaveLength(1);
+    expect(dialog().querySelector("aside")?.textContent).not.toContain("fabrication.layoutNote");
     const kind = dialog().querySelector("select")!;
     kind.value = "bracket";
     kind.dispatchEvent(new Event("change", { bubbles: true }));
     expect(input("height").disabled).toBe(false);
     expect(input("vertical.rows").disabled).toBe(false);
-    expect(dialog().querySelectorAll('svg[role="img"]')).toHaveLength(2);
+    const bracketViews = dialog().querySelectorAll('svg[role="img"]');
+    expect(bracketViews).toHaveLength(2);
+    expect(dialog().querySelector("aside")?.textContent).toContain("fabrication.layoutNote");
+    const [plan, elevation] = bracketViews;
+    expect(plan.getAttribute("viewBox")).toBe(elevation.getAttribute("viewBox"));
+    expect(plan.querySelector("g")?.getAttribute("transform")).toBeNull();
+    expect(elevation.querySelector("g")?.getAttribute("transform")).toBe("translate(0 60) scale(1 -1)");
+    expect(plan.querySelector("circle")?.getAttribute("cy")).toBe("23");
+    expect(elevation.querySelector("circle")?.getAttribute("cy")).toBe("18");
+    setNumber("height", "140");
+    const drawings = [...dialog().querySelectorAll('svg[role="img"]')];
+    expect(drawings.map((drawing) => drawing.getAttribute("viewBox")?.split(" ").at(-1))).toEqual([
+        "156.8",
+        "156.8",
+    ]);
     setNumber("vertical.rows", "");
     input("vertical.enabled").click();
     expect(input("vertical.rows").disabled).toBe(true);

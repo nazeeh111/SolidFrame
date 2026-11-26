@@ -1,0 +1,27 @@
+{
+    "native": "drilled-bracket.cd",
+    "capture": "Created with SolidFrame's mechanical-part dialog using the default L-bracket. Downloaded via Download .cd.",
+    "generator": "render-bracket.py",
+    "projection": "The isometric camera rows are (1,-1,0)/sqrt(2) and (1,1,-2)/sqrt(6). Orthographic plan and elevation share 2.2 SVG view units per mm.",
+    "png_render": "Chromium rasterization at device scale factor 2.",
+    "files": {
+        "drilled-bracket.cd": {
+            "sha256": "7566b8ecb71d3f3ffd52eac54d11491e921b2314b626b7437499fd399e644a35",
+            "bytes": 1554
+        },
+        "render-bracket.py": {
+            "sha256": "d2eefef5d7de0c9a64983ab25b28ccbdd05b12ed1430af072ff6ba42da0d28d3",
+            "bytes": 7682
+        },
+        "bracket.png": {
+            "sha256": "1f5c3f4394f97358416467c961e206c2798f7a14621445c5708b93655b6797b9",
+            "bytes": 248595,
+            "pixel_dimensions": [1920, 1132]
+        },
+        "bracket-mobile.png": {
+            "sha256": "a196575b759a1a0d96b634090d89082749c8e5565a368d8814fe50a159dfa354",
+            "bytes": 165609,
+            "pixel_dimensions": [860, 1782]
+        }
+    }
+}
