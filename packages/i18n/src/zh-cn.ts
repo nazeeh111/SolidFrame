@@ -307,8 +307,7 @@ export default {
         "fabrication.height": "高度",
         "fabrication.horizontal": "水平面",
         "fabrication.kind": "零件类型",
-        "fabrication.layoutNote":
-            "仅显示二维孔位布局。每个零件最多 32 个孔，各尺寸不超过 2000 mm。最小厚度为 0.5 mm；孔与孔之间，以及孔到材料边缘或相邻翼板之间，至少保留 0.5 mm 的材料。",
+        "fabrication.layoutNote": "支架视图采用相同比例。阴影带标出另一侧翼板与当前面的相接区域。",
         "fabrication.length": "长度",
         "fabrication.mm": "mm",
         "fabrication.pitchX": "列间距（中心距）",

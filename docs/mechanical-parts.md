@@ -12,6 +12,14 @@ SolidFrame’s mechanical part builder creates one editable native solid from a 
 
 Defaults are a 100 × 80 × 6 mm plate with four Ø8 mm holes at 60 × 40 mm pitch. The bracket adds a 60 mm total height and four vertical-flange Ø8 mm holes at 60 × 30 mm pitch. These are starting dimensions, not a standardized or approved part.
 
+## Try the drilled bracket
+
+1. [Open the bracket in SolidFrame](https://nazeeh111.github.io/SolidFrame/?model=https://raw.githubusercontent.com/nazeeh111/SolidFrame/refs/heads/main/docs/presentation/drilled-bracket.cd). To open it from disk, view [the native bracket file](presentation/drilled-bracket.cd), use **Download raw file** in GitHub’s toolbar and choose **Open document** in SolidFrame.
+2. Select **Mechanical part1** in the tree, then choose **Edit mechanical part**. The two flange drawings share a scale. The shaded strip marks the adjoining flange, and the elevation places it below the holes.
+3. Change **Width** from 100 to 120 mm and apply the edit. The two hole grids retain their pitches and stay centered. Undo returns the width to 100 mm.
+
+The [illustrated bracket](presentation/bracket.png) uses the dimensions and hole grids in that native file. Its 6 mm stock has two Ø8 mm hole grids, pitched 60 × 40 mm on the horizontal flange and 60 × 30 mm on the vertical flange. Both orthographic drawings use the same scale. The 3D view is an isometric technical illustration of the saved parameters. The actual solid is rebuilt by OpenCascade when the file opens. [Figure source and file identities](presentation/bracket-manifest.json).
+
 ## Geometry
 
 A plate is rectangular stock with a centered grid of round through holes. A bracket is an ideal sharp right-angle solid with separate hole grids on its horizontal and vertical flanges. The bracket height includes the base thickness. Grids are centered in the usable flange area, clear of the inside corner.

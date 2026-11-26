@@ -278,39 +278,46 @@ function renderPreview(container: HTMLElement, parameters?: FabricationParameter
     container.replaceChildren();
     const title = document.createElement("h3");
     title.textContent = I18n.translate("fabrication.preview");
-    const note = document.createElement("p");
-    note.textContent = I18n.translate("fabrication.layoutNote");
-    container.append(title, note);
+    container.append(title);
     if (!parameters) {
         const invalid = document.createElement("p");
         invalid.textContent = I18n.translate("fabrication.previewInvalid");
         container.append(invalid);
         return;
     }
+    if (parameters.kind === "bracket") {
+        const note = document.createElement("p");
+        note.textContent = I18n.translate("fabrication.layoutNote");
+        container.append(note);
+    }
     const ns = "http://www.w3.org/2000/svg";
+    const maxSpan =
+        parameters.kind === "bracket" ? Math.max(parameters.length, parameters.height) : parameters.length;
+    const padding = Math.max(parameters.width, maxSpan) * 0.06;
+    const viewBox = `${-padding} ${-padding} ${parameters.width + 2 * padding} ${maxSpan + 2 * padding}`;
     for (const flange of parameters.kind === "bracket"
         ? (["horizontal", "vertical"] as const)
         : (["horizontal"] as const)) {
         const span = flange === "horizontal" ? parameters.length : parameters.height;
-        const padding = Math.max(parameters.width, span) * 0.06;
         const svg = document.createElementNS(ns, "svg");
-        svg.setAttribute(
-            "viewBox",
-            `${-padding} ${-padding} ${parameters.width + 2 * padding} ${span + 2 * padding}`,
-        );
+        svg.setAttribute("viewBox", viewBox);
         svg.setAttribute("role", "img");
         svg.setAttribute("aria-label", I18n.translate(`fabrication.${flange}`));
+        const drawing = document.createElementNS(ns, "g");
+        // Show the vertical flange upright, with its inside corner below the holes.
+        if (flange === "vertical") drawing.setAttribute("transform", `translate(0 ${span}) scale(1 -1)`);
+        svg.append(drawing);
         const rect = document.createElementNS(ns, "rect");
         rect.setAttribute("width", String(parameters.width));
         rect.setAttribute("height", String(span));
         rect.classList.add(style.stock);
-        svg.append(rect);
+        drawing.append(rect);
         if (parameters.kind === "bracket") {
             const corner = document.createElementNS(ns, "rect");
             corner.setAttribute("width", String(parameters.width));
             corner.setAttribute("height", String(parameters.thickness));
             corner.classList.add(style.corner);
-            svg.append(corner);
+            drawing.append(corner);
         }
         for (const center of fabricationHoleCenters(parameters, flange)) {
             const circle = document.createElementNS(ns, "circle");
@@ -318,11 +325,14 @@ function renderPreview(container: HTMLElement, parameters?: FabricationParameter
             circle.setAttribute("cy", String(center.y));
             circle.setAttribute("r", String(parameters[flange].diameter / 2));
             circle.classList.add(style.hole);
-            svg.append(circle);
+            drawing.append(circle);
         }
-        const caption = document.createElement("p");
+        const caption = document.createElement("figcaption");
         caption.className = style.caption;
         caption.textContent = `${I18n.translate(`fabrication.${flange}`)} · ${parameters.width} × ${span} mm`;
-        container.append(svg, caption);
+        const figure = document.createElement("figure");
+        figure.className = style.figure;
+        figure.append(svg, caption);
+        container.append(figure);
     }
 }

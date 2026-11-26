@@ -1,21 +1,21 @@
 # SolidFrame
 
-**Browser CAD for sketches, parametric features and native solids.**
+**Browser CAD for parts you can revise.**
 
-Draw and constrain a sketch, build a feature, revise its dimensions, and export the resulting geometry. SolidFrame builds on [Chili3D](https://github.com/xiangechen/chili3d) and the OpenCascade WebAssembly kernel, with a local project workspace, an editable fixture and a mechanical-part builder.
+Draw a constrained sketch, build a solid, and keep its dimensions editable. SolidFrame runs in the browser on [Chili3D](https://github.com/xiangechen/chili3d) and the OpenCascade WebAssembly kernel.
 
-[Open SolidFrame](https://nazeeh111.github.io/SolidFrame/) · [Open the worked model](docs/presentation/README.md) · [Mechanical parts](docs/mechanical-parts.md) · [Engine reference](UPSTREAM_README.md)
+[Open the bracket in SolidFrame](https://nazeeh111.github.io/SolidFrame/?model=https://raw.githubusercontent.com/nazeeh111/SolidFrame/refs/heads/main/docs/presentation/drilled-bracket.cd) · [Try the bracket workflow](docs/mechanical-parts.md#try-the-drilled-bracket) · [Engine reference](UPSTREAM_README.md)
 
 <picture>
-  <source media="(max-width: 600px)" srcset="docs/presentation/feature-chain-mobile.png">
-  <img src="docs/presentation/feature-chain.png" alt="Actual saved SolidFrame model: four sketch lines, a 90 mm driving width, a 40 mm current height and a 12 mm extrusion. The native document reopens with its sketch and feature. A separate STEP import has the same 90 by 40 by 12 mm bounds, without native feature history.">
+  <source media="(max-width: 600px)" srcset="docs/presentation/bracket-mobile.png">
+  <img src="docs/presentation/bracket.png" width="960" alt="The saved 100 × 80 × 60 mm SolidFrame bracket in isometric, plan and elevation views. The 6 mm stock has four 8 mm through holes on each flange. Plan and elevation share a scale, and the shaded strips mark the adjoining flange.">
 </picture>
 
-**The sketch and its feature remain editable.** This completed example drives a rectangle's width to **90 mm**, extrudes it **12 mm**, then reopens both the native model and its STEP export. The current height is **40 mm**. The diagram comes from the actual saved profile and feature; it is separate from the [live application's reopened model capture](docs/presentation/native-reopened.png).
-
-[Download the native .cd model](docs/presentation/rectangle-extrusion.cd) · [Download its STEP geometry](docs/presentation/rectangle-extrusion.step) · [Inspect the actual workflow and limits](docs/presentation/README.md)
+The bracket stores its stock dimensions and two hole grids in one native part. Edit a grid, check both flanges at the same scale, and apply the new geometry together. [View the editable bracket file](docs/presentation/drilled-bracket.cd). To save it, use **Download raw file** in GitHub’s file toolbar.
 
 ## A modeling workspace
+
+[Open SolidFrame’s workspace](https://nazeeh111.github.io/SolidFrame/) to start a new document or open your own file.
 
 - **Sketch and feature modeling:** constrained sketches, extrusion, revolve, fillet, chamfer and feature booleans, with stored feature definitions and replay.
 - **Direct solid tools:** primitives, transforms, booleans, measurement and geometry operations in the modeling ribbon.
@@ -25,6 +25,17 @@ Draw and constrain a sketch, build a feature, revise its dimensions, and export 
 The underlying CAD engine and its existing tools come from Chili3D. SolidFrame's specific additions are described under [Project development](#project-development); they do not imply independent authorship of the kernel, sketch solver or inherited modeling tools.
 
 ## Sketch to solid
+
+<picture>
+  <source media="(max-width: 600px)" srcset="docs/presentation/feature-chain-mobile.png">
+  <img src="docs/presentation/feature-chain.png" alt="Actual saved SolidFrame model: four sketch lines, a 90 mm driving width, a 40 mm current height and a 12 mm extrusion. The native document reopens with its sketch and feature. A separate STEP import has the same 90 by 40 by 12 mm bounds, without native feature history.">
+</picture>
+
+**The sketch and its feature remain editable.** This completed example drives a rectangle's width to **90 mm**, extrudes it **12 mm**, then reopens both the native model and its STEP export. The current height is **40 mm**. The diagram comes from the actual saved profile and feature; it is separate from the [live application's reopened model capture](docs/presentation/native-reopened.png).
+
+[View the native .cd model](docs/presentation/rectangle-extrusion.cd) · [View the STEP geometry](docs/presentation/rectangle-extrusion.step) · [Inspect the actual workflow and limits](docs/presentation/README.md)
+
+To save either file, use **Download raw file** in GitHub's file toolbar.
 
 The [worked native document](docs/presentation/README.md) contains `Sketch1` and `Parametric Body1`. Its stored extrusion refers to the sketch and its four profile edges. In the completed run, undo removed the new body, redo restored it, and downloading/reopening `.cd` retained the sketch and feature. The live application then imported the saved STEP into a separate new document with matching bounds.
 

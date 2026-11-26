@@ -230,7 +230,7 @@ export default {
         "fabrication.horizontal": "Face horizontal",
         "fabrication.kind": "Tipo de peça",
         "fabrication.layoutNote":
-            "Somente disposição 2D. Máximo de 32 furos por peça e 2000 mm por dimensão. Espessura mínima: 0,5 mm. Mantenha pelo menos 0,5 mm de material entre furos e dos furos às bordas do material ou à aba adjacente.",
+            "As vistas da cantoneira têm a mesma escala. A faixa sombreada marca o encontro com a outra aba.",
         "fabrication.length": "Comprimento",
         "fabrication.mm": "mm",
         "fabrication.pitchX": "Espaçamento entre colunas (centro a centro)",
