@@ -109,7 +109,16 @@ export class PlanePickHandler extends ShapeSelectionHandler {
         view.update();
     }
 
-    protected override select(_view: IView, _event: PointerEvent): number {
+    override pointerDown(view: IView, event: PointerEvent): void {
+        super.pointerDown(view, event);
+        // Two or more fingers navigate the viewport and must not choose a plane.
+        if (event.pointerType === "touch" && !event.isPrimary) this.mouse.isDown = false;
+    }
+
+    protected override select(view: IView, event: PointerEvent): number {
+        // A touch tap can arrive without a pointer move to establish a hover target.
+        if (event.pointerType === "touch") this.setHighlight(view, event);
+
         const face = this._highlights?.[0];
         if (face !== undefined) {
             this.result = { kind: "face", data: face };

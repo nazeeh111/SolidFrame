@@ -22,6 +22,7 @@ import { rs } from "@rstest/core";
 import { ParametricBodyNode } from "../../src/parametricBodyNode";
 import { PlanePickHandler } from "../../src/sketch/commands/planePickHandler";
 import { CreateSketch, EnterSketch } from "../../src/sketch/commands/sketchCommands";
+import { SketchPointSnapEventHandler } from "../../src/sketch/commands/sketchPointSnapEventHandler";
 import { SketchEditor } from "../../src/sketch/editor/sketchEditor";
 import { sketchPlaneOfFace } from "../../src/sketch/planeRef";
 import { SketchNode } from "../../src/sketch/sketchNode";
@@ -84,19 +85,20 @@ describe("sketchPlaneOfFace", () => {
     });
 });
 
-describe("PlanePickHandler", () => {
-    function event(x: number, y: number): PointerEvent {
-        return {
-            offsetX: x,
-            offsetY: y,
-            button: 0,
-            buttons: 0,
-            isPrimary: true,
-            pointerId: 1,
-            preventDefault: () => {},
-        } as unknown as PointerEvent;
-    }
+function pointer(x: number, y: number, pointerType = "mouse", isPrimary = true): PointerEvent {
+    return {
+        offsetX: x,
+        offsetY: y,
+        button: 0,
+        buttons: 0,
+        isPrimary,
+        pointerId: isPrimary ? 1 : 2,
+        pointerType,
+        preventDefault: () => {},
+    } as unknown as PointerEvent;
+}
 
+describe("PlanePickHandler", () => {
     function setup(rayAt: IView["rayAt"], detectShapes?: IView["detectShapes"]) {
         const document = new TestDocument();
         document.visual = createMockVisualWithDocument(document) as any;
@@ -109,9 +111,9 @@ describe("PlanePickHandler", () => {
     }
 
     function click(handler: PlanePickHandler, view: IView) {
-        handler.pointerMove(view, event(10, 10));
-        handler.pointerDown(view, event(10, 10));
-        handler.pointerUp(view, event(10, 10));
+        handler.pointerMove(view, pointer(10, 10));
+        handler.pointerDown(view, pointer(10, 10));
+        handler.pointerUp(view, pointer(10, 10));
     }
 
     const hitXY = () =>
@@ -124,6 +126,31 @@ describe("PlanePickHandler", () => {
 
         expect(handler.result).toEqual({ kind: "datum", plane: Plane.XY });
         expect(isCompleted()).toBe(true);
+    });
+
+    test("tapping a datum quad without hover resolves with the datum plane", () => {
+        const { handler, view, isCompleted } = setup(hitXY);
+        const tap = pointer(10, 10, "touch");
+
+        handler.pointerDown(view, tap);
+        handler.pointerUp(view, tap);
+
+        expect(handler.result).toEqual({ kind: "datum", plane: Plane.XY });
+        expect(isCompleted()).toBe(true);
+    });
+
+    test("a second touch cancels the datum pick even if it lifts first", () => {
+        const { handler, view, isCompleted } = setup(hitXY);
+        const tap = pointer(10, 10, "touch");
+        const second = pointer(30, 20, "touch", false);
+
+        handler.pointerDown(view, tap);
+        handler.pointerDown(view, second);
+        handler.pointerUp(view, second);
+        handler.pointerUp(view, tap);
+
+        expect(handler.result).toBeUndefined();
+        expect(isCompleted()).toBe(false);
     });
 
     test("the ZX quad sits in the positive quadrant and resolves to the Z-up plane", () => {
@@ -192,6 +219,33 @@ describe("PlanePickHandler", () => {
         handler.dispose();
 
         expect(removeMesh.mock.calls.length).toBe(3);
+    });
+});
+
+describe("SketchPointSnapEventHandler", () => {
+    test("a two-finger gesture leaves the step active and a subsequent tap commits its point", () => {
+        const document = new TestDocument();
+        document.visual = createMockVisualWithDocument(document);
+        const controller = new AsyncController();
+        const completed = rs.fn();
+        controller.onCompleted(completed);
+        const view = createMockView({ document, direction: () => XYZ.unitZ.reverse() });
+        const handler = new SketchPointSnapEventHandler(document, controller, { plane: () => Plane.XY });
+        const first = pointer(410, 280, "touch");
+        const second = pointer(440, 260, "touch", false);
+
+        handler.pointerDown(view, first);
+        handler.pointerDown(view, second);
+        handler.pointerMove(view, first);
+        handler.pointerUp(view, second);
+        handler.pointerUp(view, first);
+        expect(completed).not.toHaveBeenCalled();
+
+        const tap = pointer(420, 270, "touch");
+        handler.pointerDown(view, tap);
+        handler.pointerUp(view, tap);
+        expect(completed).toHaveBeenCalledTimes(1);
+        expect(handler.snaped?.point).toEqual(new XYZ({ x: 20, y: 30, z: 0 }));
     });
 });
 
