@@ -27,6 +27,7 @@ import type { SketchPointSnapData } from "./sketchPointStep";
  */
 export class SketchPointSnapEventHandler extends PointSnapEventHandler {
     private sketchSnap?: DragSnap;
+    private touchPointer?: number;
     /** Tangency the probe's entity would get: shown in place of the snap's own icon. */
     private sketchTangentKind?: ConstraintKind;
 
@@ -36,6 +37,27 @@ export class SketchPointSnapEventHandler extends PointSnapEventHandler {
         private readonly sketchData: SketchPointSnapData,
     ) {
         super(document, controller, sketchData);
+    }
+
+    override pointerDown(view: IView, event: PointerEvent): void {
+        // A second finger makes the gesture viewport navigation rather than point placement.
+        if (event.pointerType === "touch") this.touchPointer = event.isPrimary ? event.pointerId : undefined;
+        super.pointerDown(view, event);
+    }
+
+    override pointerUp(view: IView, event: PointerEvent): void {
+        if (event.pointerType === "touch") {
+            if (this.touchPointer !== event.pointerId) return;
+            this.touchPointer = undefined;
+            // A tap may have no pointer move. Snap at the released point before accepting it.
+            this.setSnaped(view, event);
+        }
+        super.pointerUp(view, event);
+    }
+
+    override pointerOut(view: IView, event: PointerEvent): void {
+        if (this.touchPointer === event.pointerId) this.touchPointer = undefined;
+        super.pointerOut(view, event);
     }
 
     protected override findSnapPoint(shapeType: ShapeType, view: IView, event: PointerEvent): void {
